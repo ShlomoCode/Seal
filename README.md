@@ -2,7 +2,8 @@
 
 <img width="" src="fastlane/metadata/android/en-US/images/icon.png"  width=160 height=160  align="center">
 
-# Seal
+# Seal (no-ssl version)
+# This is a fork of https://github.com/JunkFood02/Seal with SSL checks disabled for netfree users
 
 ### Video/Audio Downloader for Android
 
