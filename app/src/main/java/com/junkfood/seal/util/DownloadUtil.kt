@@ -99,6 +99,7 @@ object DownloadUtil {
             addOption("-o", BASENAME)
             addOption("-R", "1")
             addOption("--socket-timeout", "5")
+            addOption("--no-check-certificate")
             downloadPreferences.run {
                 if (extractAudio) {
                     addOption("-x")
@@ -139,6 +140,7 @@ object DownloadUtil {
         url: String, playlistItem: Int = 0, preferences: DownloadPreferences = DownloadPreferences()
     ): Result<VideoInfo> = YoutubeDLRequest(url).apply {
         preferences.run {
+            addOption("--no-check-certificate")
             addOption("-o", BASENAME)
             if (restrictFilenames) {
                 addOption("--restrict-filenames")
@@ -304,6 +306,7 @@ object DownloadUtil {
         downloadPreferences.run {
             addOption("--add-metadata")
             addOption("--no-embed-info-json")
+            addOption("--no-check-certificate")
             if (formatIdString.isNotEmpty()) {
                 addOption("-f", formatIdString)
                 if (mergeAudioStream) {
@@ -403,6 +406,7 @@ object DownloadUtil {
         id: String, preferences: DownloadPreferences, playlistUrl: String
     ): YoutubeDLRequest = this.apply {
         with(preferences) {
+             addOption("--no-check-certificate")
             addOption("-x")
             if (downloadSubtitle) {
                 addOption("--write-subs")
