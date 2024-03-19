@@ -55,8 +55,8 @@ import com.junkfood.seal.util.AUTO_UPDATE
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.ToastUtil
 
-private const val releaseURL = "https://github.com/JunkFood02/Seal/releases"
-private const val repoUrl = "https://github.com/JunkFood02/Seal"
+private const val releaseURL = "https://github.com/ShlomoCode/Seal/releases"
+private const val repoUrl = "https://github.com/ShlomoCode/Seal"
 const val weblate = "https://hosted.weblate.org/engage/seal/"
 private const val githubIssueUrl = "https://github.com/JunkFood02/Seal/issues/new/choose"
 private const val telegramChannelUrl = "https://t.me/seal_app"
@@ -209,7 +209,7 @@ fun AutoUpdateUnavailableDialog(onDismissRequest: () -> Unit = {}) {
         val startIndex = text.indexOf(hyperLinkText)
         val endIndex = startIndex + hyperLinkText.length
         addUrlAnnotation(
-            UrlAnnotation("https://github.com/JunkFood02/Seal/releases/latest"),
+            UrlAnnotation("https://github.com/ShlomoCode/Seal/releases/latest"),
             start = startIndex,
             end = endIndex
         )
