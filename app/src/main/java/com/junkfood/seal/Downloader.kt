@@ -50,9 +50,10 @@ object Downloader {
             val itemCount: Int = 0,
         ) : State()
 
-        object DownloadingVideo : State()
-        object FetchingInfo : State()
-        object Idle : State()
+        data object DownloadingVideo : State()
+        data object FetchingInfo : State()
+        data object Idle : State()
+        data object Updating : State()
     }
 
     sealed class ErrorState(
@@ -573,13 +574,16 @@ object Downloader {
                     else return@launch
                 }
 
-                NotificationUtil.updateServiceNotification(
+                NotificationUtil.updateServiceNotificationForPlaylist(
                     index = i + 1, itemCount = itemCount
                 )
 
                 val playlistIndex = indexList[i]
-                val playlistEntry = playlistItemList[playlistIndex]
-                val title = playlistEntry.title
+                val playlistEntry = playlistItemList.getOrNull(i)
+
+                Log.d(TAG, playlistEntry?.title.toString())
+
+                val title = playlistEntry?.title
 
                 DownloadUtil.fetchVideoInfoFromUrl(
                     url = url,
@@ -606,7 +610,7 @@ object Downloader {
                 }.onFailure { th ->
                     manageDownloadError(
                         th = th,
-                        url = playlistEntry.url,
+                        url = playlistEntry?.url,
                         title = title,
                         isFetchingInfo = true,
                         isTaskAborted = false

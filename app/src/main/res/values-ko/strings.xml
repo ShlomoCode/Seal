@@ -9,7 +9,7 @@
     <string name="paste_msg">클립보드에서 URL 붙여넣기</string>
     <string name="audio">오디오</string>
     <string name="delete_info_msg">다운로드 기록에서 \"%1$s\"을(를) 삭제할까요\?</string>
-    <string name="yt_dlp_up_to_date">최신 버전의 yt-dlp 사용</string>
+    <string name="yt_dlp_up_to_date">최신 버전의 yt-dlp 사용 중</string>
     <string name="create_thumbnail_summary">동영상 썸네일을 파일로 저장</string>
     <string name="extract_audio_summary">동영상 대신 오디오 다운로드 및 저장</string>
     <string name="language_settings">언어 설정</string>
@@ -275,7 +275,7 @@
     <string name="edit_shortcuts_desc">명령 템플릿을 작성하는 데 사용할 수 있는 사용자 지정 바로 가기를 편집합니다.</string>
     <string name="clear">지우기</string>
     <string name="embed_subtitles_mkv_msg">자막을 삽입하기 위해 동영상은 mkv 컨테이너로 리먹스됩니다. VLC 미디어 플레이어 등 지원되는 플레이어로 재생할 수 있습니다.</string>
-    <string name="sponsor">후원자</string>
+    <string name="sponsor">후원하기</string>
     <string name="format_selection_desc">다운로드를 시작하기 전에 다운로드할 형식 선택</string>
     <string name="subtitle_sponsorblock">SponsorBlock 세그먼트를 제거할 때 자막이 누락될 수 있습니다.</string>
     <string name="update_channel_desc">새로운 기능과 변경 사항을 미리 보기위해 시험판 빌드를 설치합니다.
@@ -401,4 +401,6 @@
     <string name="update_subtitle_languages">자막 언어를 업데이트할까요?</string>
     <string name="download_history_imported">다운로드 기록에 %1$s를 불러옴</string>
     <string name="redownload">재다운로드</string>
+    <string name="remux_container_mkv">비디오 컨테이너 리묵스</string>
+    <string name="remux_container_mkv_desc">더 나은 호환성을 위해 비디오를 MKV 컨테이너로 리묵스하기</string>
 </resources>
