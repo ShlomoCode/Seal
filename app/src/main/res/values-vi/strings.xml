@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="video_directory">Thư mục băng hình</string>
+    <string name="video_directory">Thư mục video</string>
     <string name="extract_audio">Lưu dưới dạng âm thanh</string>
     <string name="create_thumbnail">Lưu hình thu nhỏ</string>
     <string name="settings">Thiết đặt</string>
@@ -34,7 +34,7 @@
     <string name="link_copied">Đã sao chép link tới khay nhớ tạm</string>
     <string name="open_url">Mở link</string>
     <string name="remove">Gỡ bỏ</string>
-    <string name="delete_file">Xóa</string>
+    <string name="delete_file">Xóa tệp</string>
     <string name="about">Thông tin</string>
     <string name="about_page">Phiên bản, phản hồi, cập nhật tự động</string>
     <string name="back">Quay lại</string>
@@ -79,7 +79,7 @@
     <string name="close_never_show_again">Không hiển thị lại</string>
     <string name="user_guide">Hướng dẫn người dùng</string>
     <string name="open_settings">Mở thiết đặt</string>
-    <string name="paste_desc">Nhấn \"Dán\" để lấy đường dẫn video từ khay nhớ tạm.</string>
+    <string name="paste_desc">Nhấp vào \"Dán\" để lấy link video từ khay nhớ tạm.</string>
     <string name="download_desc">Kế đến nhấp vào \"Tải xuống\" sau khi điều chỉnh thiết đặt của nó.</string>
     <string name="download_history_desc">Kiểm tra và quản lý Tải xuống trong ứng dụng, gồm tệp video và âm thanh.</string>
     <string name="check_download_settings_desc">Hãy xem thiết đặt tải xuống và đảm bảo bạn có phiên bản yt-dlp mới nhất trước khi sử dụng.</string>
@@ -91,7 +91,7 @@
     <string name="video_url">Đường dẫn video</string>
     <string name="download_finish_notification">Đã hoàn thành tải xuống. Nhấn để mở.</string>
     <string name="concurrent_download">Tải xuống đa luồng</string>
-    <string name="concurrent_download_desc">Tải đồng thời nhiều phần của cuộn băng M3U8/MPD</string>
+    <string name="concurrent_download_desc">Tải xuống song song nhiều phần của video M3U8/MPD</string>
     <string name="concurrent_download_num">%d chuỗi sẽ được sử dụng cùng lúc để tải xuống video gốc DASH/HLS.</string>
     <string name="options">Tùy chọn</string>
     <string name="share_fail_msg">Không thể khớp URL từ nội dung được chia sẻ</string>
@@ -105,7 +105,7 @@
     <string name="start_execute">Bắt đầu thực thi lệnh</string>
     <string name="advanced_settings">Nâng cao</string>
     <string name="convert_audio">Chuyển đổi</string>
-    <string name="video_quality_desc">Giới hạn chất lượng video khi có nhiều video</string>
+    <string name="video_quality_desc">Giới hạn chất lượng khi có nhiều video</string>
     <string name="not_specified">Không xác định (mặc định)</string>
     <string name="video_format">Định dạng video</string>
     <string name="additional_settings">Thiết đặt bổ sung</string>
@@ -131,7 +131,7 @@
 \n
 \nBạn có thể truy cập các tệp này trong %1$s</string>
     <string name="download_directory">Thư mục tải xuống</string>
-    <string name="download_directory_desc">Lựa chọn nơi để lưu trữ video và âm thanh</string>
+    <string name="download_directory_desc">Chọn nơi lưu trữ tệp video và âm thanh</string>
     <string name="subdirectory">Lưu vào thư mục con</string>
     <string name="subdirectory_desc">Lưu tệp vào các thư mục được đặt tên theo trường tương ứng</string>
     <string name="permission_issue">Vấn đề quyền truy cập bộ nhớ</string>
@@ -144,7 +144,7 @@
     <string name="translate_desc">Giúp dịch ứng dụng này trên Hosted Weblate</string>
     <string name="prefix">Mẫu đường dẫn</string>
     <string name="embed_subtitles">Nhúng phụ đề</string>
-    <string name="embed_subtitles_desc">Nhúng phụ đề được cung cấp vào video nếu có</string>
+    <string name="embed_subtitles_desc">Nhúng phụ đề rời vào video nếu có</string>
     <string name="new_template">Bản mẫu mới</string>
     <string name="template_label">Nhãn</string>
     <string name="remove_template">Loại bỏ\?</string>
@@ -162,10 +162,10 @@
     <string name="status_completed">Đã hoàn thành</string>
     <string name="status_downloading">Đang tải</string>
     <string name="status_canceled">Đã hủy</string>
-    <string name="status_fetching_video_info">Tìm nạp thông tin</string>
+    <string name="status_fetching_video_info">Đang nạp thông tin</string>
     <string name="status_error">Lỗ</string>
     <string name="copy_link">Sao chép link</string>
-    <string name="copy_error_report">Báo cáo lỗi</string>
+    <string name="copy_error_report">Sao chép báo cáo</string>
     <string name="video_resolution">Độ phân giải video</string>
     <string name="video_file_size">Kích thước tệp video</string>
     <string name="clear_temp_files_desc">Xóa tất cả các tệp tạm thời khỏi thư mục tạm thời</string>
@@ -241,7 +241,7 @@
     <string name="copy_log">Sao chép nhật ký</string>
     <string name="clear">Xóa</string>
     <string name="apply">Áp dụng</string>
-    <string name="embed_subtitles_mkv_msg">Để nhúng phụ đề, video sẽ được trộn lại vào bộ chứa mkv. Bạn có thể sử dụng VLC Media Player hoặc các ứng dụng tương thích khác để xem video có phụ đề nhúng.</string>
+    <string name="embed_subtitles_mkv_msg">Để nhúng phụ đề rời, video sẽ được làm lại vào vùng chứa mkv. Bạn có thể sử dụng VLC Media Player hoặc các ứng dụng tương thích khác để xem video có phụ đề rời.</string>
     <string name="pre_release_channel">Xem trước</string>
     <string name="edit_shortcuts">Tùy chỉnh lối tắt</string>
     <string name="update_channel_desc">Cài đặt bản dụng trước khi phát hành để xem trước các tính năng và thay đổi
@@ -299,7 +299,7 @@
     <string name="auto_subtitle">Phụ đề tự động</string>
     <string name="auto_subtitle_desc">Tải xuống phụ đề được tạo tự động</string>
     <string name="title_activity_share">Tải xuống nhanh</string>
-    <string name="video_creator_sample_text">Văn bản mẫu người tạo video</string>
+    <string name="video_creator_sample_text">Văn bản mẫu người sáng tạo video</string>
     <string name="subtitle">Phụ đề</string>
     <string name="download_subtitles">Tải xuống phụ đề</string>
     <string name="subtitle_language">Ngôn ngữ phụ đề</string>
@@ -322,7 +322,7 @@
     <string name="custom_command_directory_desc">Chỉ định thư mục đầu ra khi sử dụng lệnh tùy chỉnh</string>
     <string name="folder_picker">Trình chọn thư mục</string>
     <string name="prefer_compatibility_desc">Ưu tiên định dạng MP4(H.264) để chia sẻ với các ứng dụng khác</string>
-    <string name="custom_command_usage_msg">yt-dlp là công cụ dòng lệnh mạnh mẽ để tải xuống video. Seal giúp sử dụng yt-dlp dễ dàng hơn bằng cách cung cấp GUI trực quan, cài đặt trước cho các lệnh phổ biến và các tính năng bổ sung khác.
+    <string name="custom_command_usage_msg">yt-dlp là công cụ dòng lệnh mạnh mẽ để tải xuống băng hình. Seal giúp sử dụng yt-dlp dễ dàng hơn bằng cách cung cấp GUI trực quan, cài đặt trước cho các lệnh phổ biến và các tính năng bổ sung khác.
 \n
 \nĐể sử dụng yt-dlp nâng cao, Seal cho phép bạn tạo, lưu và thực thi trực tiếp các mẫu lệnh tùy chỉnh, giống như trong một thiết bị đầu cuối.
 \n
@@ -334,7 +334,7 @@
     <string name="clear_download_archive_desc">Loại bỏ vĩnh viễn %1$s trong tệp lưu trữ\?</string>
     <string name="unknown">Không xác định</string>
     <string name="learn_more">Tìm hiểu thêm</string>
-    <string name="presets">Cài đặt trước</string>
+    <string name="presets">Các cài đặt trước</string>
     <string name="ua_header">Đầu đề tác nhân người dùng</string>
     <string name="format_preference">Tùy chọn định dạng</string>
     <string name="output_template">Mẫu đầu ra</string>
@@ -401,4 +401,26 @@
     <string name="download_history_imported">Đã nhập %1$s vào lịch sử tải xuống</string>
     <string name="redownload">Tải xuống lại</string>
     <string name="download_archive_error">Video đã được tải xuống. Nếu đây không phải là hành vi mong đợi, vui lòng kiểm tra kho lưu trữ tải xuống của bạn.</string>
+    <string name="remux_container_mkv">Thùng chứa video remux</string>
+    <string name="remux_container_mkv_desc">Remux video vào vùng chứa MKV để có khả năng tương thích tốt hơn</string>
+    <string name="cookies_in_database">Tổng cộng %1$d cookie từ %2$d trang web</string>
+    <string name="every_day">Hằng ngày</string>
+    <string name="every_week">Hàng tuần</string>
+    <string name="every_month">Hàng tháng</string>
+    <plurals name="video_count">
+        <item quantity="other">%d video</item>
+    </plurals>
+    <string name="all_languages">Tất cả ngôn ngữ</string>
+    <string name="playlist">Danh sách phát</string>
+    <string name="proceed">Tiếp tục</string>
+    <string name="prefer_placeholder">­Ưu tiên %1$s</string>
+    <string name="preset_format_selection_desc">Tự động tải xuống sử dụng các thiết lập định dạng của bạn</string>
+    <string name="preset">Cài đặt trước</string>
+    <string name="edit_preset">Chỉnh sửa cài đặt trước</string>
+    <string name="best_quality_desc">Tải xuống định dạng có sẵn tốt nhất</string>
+    <string name="task_added">Nhiệm vụ đã thêm vào danh sách chờ</string>
+    <plurals name="audio_count">
+        <item quantity="other">%d âm thanh</item>
+    </plurals>
+    <string name="custom_format_selection_desc">Chọn từ các định dạng, phụ đề và tùy chỉnh nhiều hơn</string>
 </resources>

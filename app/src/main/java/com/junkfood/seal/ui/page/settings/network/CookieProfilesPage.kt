@@ -39,6 +39,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -47,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -61,6 +63,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.input.ImeAction
@@ -69,17 +72,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.junkfood.seal.R
 import com.junkfood.seal.database.objects.CookieProfile
+import com.junkfood.seal.ui.common.HapticFeedback.slightHapticFeedback
 import com.junkfood.seal.ui.common.booleanState
 import com.junkfood.seal.ui.component.BackButton
 import com.junkfood.seal.ui.component.ConfirmButton
 import com.junkfood.seal.ui.component.DialogSwitchItem
 import com.junkfood.seal.ui.component.DismissButton
 import com.junkfood.seal.ui.component.HelpDialog
-import com.junkfood.seal.ui.component.HorizontalDivider
-import com.junkfood.seal.ui.component.LargeTopAppBar
 import com.junkfood.seal.ui.component.PasteFromClipBoardButton
 import com.junkfood.seal.ui.component.PreferenceItemVariant
 import com.junkfood.seal.ui.component.PreferenceSwitchWithContainer
@@ -92,7 +93,7 @@ import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.DownloadUtil.toCookiesFileContent
 import com.junkfood.seal.util.FileUtil
 import com.junkfood.seal.util.FileUtil.getCookiesFile
-import com.junkfood.seal.util.PreferenceUtil
+import com.junkfood.seal.util.PreferenceUtil.getBoolean
 import com.junkfood.seal.util.PreferenceUtil.updateBoolean
 import com.junkfood.seal.util.USER_AGENT
 import com.junkfood.seal.util.matchUrlFromClipboard
@@ -103,13 +104,15 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CookieProfilePage(
-    cookiesViewModel: CookiesViewModel = viewModel(),
+    cookiesViewModel: CookiesViewModel,
     navigateToCookieGeneratorPage: () -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState(),
-        canScroll = { true })
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+            rememberTopAppBarState(),
+            canScroll = { true },
+        )
     val cookies = cookiesViewModel.cookiesFlow.collectAsState(emptyList()).value
     val scope = rememberCoroutineScope()
     val hapticFeedback = LocalHapticFeedback.current
@@ -117,26 +120,32 @@ fun CookieProfilePage(
     val clipboardManager = LocalClipboardManager.current
     val state by cookiesViewModel.stateFlow.collectAsStateWithLifecycle()
     var showClearCookieDialog by remember { mutableStateOf(false) }
-    var isCookieEnabled by remember { mutableStateOf(PreferenceUtil.getValue(COOKIES)) }
+    var isCookieEnabled by remember { mutableStateOf(COOKIES.getBoolean()) }
     val cookieManager = CookieManager.getInstance()
     var showHelpDialog by remember { mutableStateOf(false) }
+    val view = LocalView.current
 
-    var cookieList by remember {
-        mutableStateOf(listOf<Cookie>())
-    }
+    var cookieList by remember { mutableStateOf(listOf<Cookie>()) }
 
-    LaunchedEffect(state.showEditDialog) {
-        withContext(Dispatchers.IO) {
+    var shouldUpdateCookies by remember { mutableStateOf(false) }
+
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    DisposableEffect(shouldUpdateCookies) {
+        scope.launch(Dispatchers.IO) {
             DownloadUtil.getCookieListFromDatabase().getOrNull()?.let {
                 cookieList = it
                 FileUtil.writeContentToFile(it.toCookiesFileContent(), context.getCookiesFile())
             }
         }
+        onDispose { shouldUpdateCookies = false }
     }
 
-
     val exportLauncher =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("text/plain")
+        ) { uri ->
             uri?.let {
                 scope.launch(Dispatchers.IO) {
                     context.contentResolver.openOutputStream(uri)?.use {
@@ -147,83 +156,75 @@ fun CookieProfilePage(
         }
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(title = {
-                Text(
-                    modifier = Modifier,
-                    text = stringResource(id = R.string.cookies),
-                )
-            }, navigationIcon = {
-                BackButton {
-                    onNavigateBack()
-                }
-            }, actions = {
-                var expanded by remember { mutableStateOf(false) }
-                IconButton(onClick = { showHelpDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Outlined.HelpOutline,
-                        contentDescription = stringResource(R.string.how_does_it_work)
-                    )
-                }
-                IconButton(onClick = { expanded = true }) {
-                    Icon(
-                        Icons.Outlined.MoreVert,
-                        contentDescription = stringResource(
-                            R.string.show_more_actions
+            LargeTopAppBar(
+                title = { Text(modifier = Modifier, text = stringResource(id = R.string.cookies)) },
+                navigationIcon = { BackButton { onNavigateBack() } },
+                actions = {
+                    var expanded by remember { mutableStateOf(false) }
+                    IconButton(onClick = { showHelpDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Outlined.HelpOutline,
+                            contentDescription = stringResource(R.string.how_does_it_work),
                         )
-                    )
-                }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    var userAgent by USER_AGENT.booleanState
-                    fun toggleUserAgent(boolean: Boolean = !userAgent) {
-                        expanded = false
-                        userAgent = boolean
-                        USER_AGENT.updateBoolean(boolean)
                     }
-                    DropdownMenuItem(
-                        modifier = Modifier.toggleable(
-                            value = userAgent,
-                            onValueChange = ::toggleUserAgent
-                        ),
-                        leadingIcon = {
-                            Checkbox(
-                                checked = userAgent,
-                                onCheckedChange = null,
-                                modifier = Modifier.clearAndSetSemantics { })
-                        },
-                        text = { Text(stringResource(id = R.string.ua_header)) },
-                        onClick = ::toggleUserAgent,
-                    )
-                    DropdownMenuItem(
-                        leadingIcon = { Icon(Icons.Outlined.FileCopy, null) },
-                        text = {
-                            Text(stringResource(id = R.string.export_to_file))
-                        },
-                        enabled = cookieList.isNotEmpty(),
-                        onClick = {
+                    IconButton(onClick = { expanded = true }) {
+                        Icon(
+                            Icons.Outlined.MoreVert,
+                            contentDescription = stringResource(R.string.show_more_actions),
+                        )
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        var userAgent by USER_AGENT.booleanState
+                        fun toggleUserAgent(boolean: Boolean = !userAgent) {
                             expanded = false
-                            exportLauncher.launch("cookies_exported${System.currentTimeMillis()}.txt")
-                        })
-                    DropdownMenuItem(
-                        leadingIcon = { Icon(Icons.Outlined.DeleteForever, null) },
-                        text = {
-                            Text(stringResource(id = R.string.clear_all_cookies))
-                        },
-                        onClick = {
-                            expanded = false
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            showClearCookieDialog = true
-                        })
-
-                }
-            }, scrollBehavior = scrollBehavior)
+                            userAgent = boolean
+                            USER_AGENT.updateBoolean(boolean)
+                        }
+                        DropdownMenuItem(
+                            modifier =
+                                Modifier.toggleable(
+                                    value = userAgent,
+                                    onValueChange = ::toggleUserAgent,
+                                ),
+                            leadingIcon = {
+                                Checkbox(
+                                    checked = userAgent,
+                                    onCheckedChange = null,
+                                    modifier = Modifier.clearAndSetSemantics {},
+                                )
+                            },
+                            text = { Text(stringResource(id = R.string.ua_header)) },
+                            onClick = ::toggleUserAgent,
+                        )
+                        DropdownMenuItem(
+                            leadingIcon = { Icon(Icons.Outlined.FileCopy, null) },
+                            text = { Text(stringResource(id = R.string.export_to_file)) },
+                            enabled = cookieList.isNotEmpty(),
+                            onClick = {
+                                expanded = false
+                                exportLauncher.launch(
+                                    "cookies_exported${System.currentTimeMillis()}.txt"
+                                )
+                            },
+                        )
+                        DropdownMenuItem(
+                            leadingIcon = { Icon(Icons.Outlined.DeleteForever, null) },
+                            text = { Text(stringResource(id = R.string.clear_all_cookies)) },
+                            onClick = {
+                                expanded = false
+                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                                showClearCookieDialog = true
+                            },
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
         },
-    )
-    { paddingValues ->
-        LazyColumn(modifier = Modifier.padding(paddingValues)) {
+    ) { paddingValues ->
+        LazyColumn(modifier = Modifier, contentPadding = paddingValues) {
             item {
                 PreferenceSwitchWithContainer(
                     title = stringResource(R.string.use_cookies),
@@ -233,183 +234,183 @@ fun CookieProfilePage(
                         if (isCookieEnabled) {
                             isCookieEnabled = false
                             COOKIES.updateBoolean(false)
-                        } else if ((cookies.isEmpty() || !cookieManager.hasCookies()) && !isCookieEnabled) {
+                        } else if (
+                            (cookies.isEmpty() || !cookieManager.hasCookies()) && !isCookieEnabled
+                        ) {
                             showHelpDialog = true
                         } else {
                             isCookieEnabled = true
                             COOKIES.updateBoolean(true)
                         }
-                    })
+                    },
+                )
             }
             itemsIndexed(cookies) { _, item ->
                 PreferenceItemVariant(
                     modifier = Modifier.padding(vertical = 4.dp),
                     title = item.url,
-                    onClick = { cookiesViewModel.showEditCookieDialog(item) },
-                    onClickLabel = stringResource(
-                        id = R.string.edit
-                    ), onLongClick = {
+                    onClick = {
+                        cookiesViewModel.setEditingProfile(item)
+                        showEditDialog = true
+                    },
+                    onClickLabel = stringResource(id = R.string.edit),
+                    onLongClick = {
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                        cookiesViewModel.showDeleteCookieDialog(item)
-                    }, onLongClickLabel = stringResource(R.string.remove)
+                        cookiesViewModel.setEditingProfile(item)
+                        showDeleteDialog = true
+                    },
+                    onLongClickLabel = stringResource(R.string.remove),
                 )
             }
 
             item {
                 PreferenceItemVariant(
                     title = stringResource(id = R.string.generate_new_cookies),
-                    icon = Icons.Outlined.Add
-                ) { cookiesViewModel.showEditCookieDialog() }
+                    icon = Icons.Outlined.Add,
+                ) {
+                    cookiesViewModel.setEditingProfile()
+                    showEditDialog = true
+                }
             }
             item {
-                HorizontalDivider()
+                androidx.compose.material3.HorizontalDivider()
                 val cookiesCount = cookieList.size
                 val siteCount = cookieList.distinctBy { it.domain }.size
                 Text(
                     text = stringResource(R.string.cookies_in_database, cookiesCount, siteCount),
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
-
     }
-    if (state.showEditDialog) {
+    if (showEditDialog) {
         CookieGeneratorDialog(
-            cookiesViewModel,
-            navigateToCookieGeneratorPage = navigateToCookieGeneratorPage
+            cookiesViewModel = cookiesViewModel,
+            navigateToCookieGeneratorPage = {
+                cookiesViewModel.updateCookieProfile()
+                navigateToCookieGeneratorPage()
+            },
         ) {
-            cookiesViewModel.hideDialog()
+            showEditDialog = false
+            shouldUpdateCookies = true
         }
     }
 
-    if (state.showDeleteDialog) {
-        DeleteCookieDialog(cookiesViewModel) { cookiesViewModel.hideDialog() }
+    if (showDeleteDialog) {
+        DeleteCookieDialog(cookiesViewModel) { showDeleteDialog = false }
     }
 
     if (showHelpDialog) {
-        HelpDialog(text = stringResource(id = R.string.cookies_usage_msg), onDismissRequest = {
-            showHelpDialog = false
-        })
+        HelpDialog(
+            text = stringResource(id = R.string.cookies_usage_msg),
+            onDismissRequest = { showHelpDialog = false },
+        )
     }
     if (showClearCookieDialog) {
         ClearCookiesDialog(onDismissRequest = { showClearCookieDialog = false }) {
-            scope.launch(Dispatchers.IO) {
-                CookieManager.getInstance().removeAllCookies(null)
-            }
+            view.slightHapticFeedback()
+            scope
+                .launch(Dispatchers.IO) { CookieManager.getInstance().removeAllCookies(null) }
+                .invokeOnCompletion { shouldUpdateCookies = true }
         }
     }
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class
-)
 @Composable
 fun CookieGeneratorDialog(
-    cookiesViewModel: CookiesViewModel = viewModel(),
+    cookiesViewModel: CookiesViewModel,
     navigateToCookieGeneratorPage: () -> Unit = {},
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
 ) {
 
     val state by cookiesViewModel.stateFlow.collectAsStateWithLifecycle()
     val profile = state.editingCookieProfile
     val url = profile.url
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            CookieManager.getInstance().flush()
-        }
-    }
-    AlertDialog(onDismissRequest = onDismissRequest, icon = {
-        Icon(Icons.Outlined.Cookie, null)
-    }, title = { Text(stringResource(R.string.cookies)) }, text = {
-        Column(Modifier.verticalScroll(rememberScrollState())) {
-            OutlinedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                value = url, label = { Text("URL") },
-                onValueChange = { cookiesViewModel.updateUrl(it) }, trailingIcon = {
-                    PasteFromClipBoardButton {
-                        cookiesViewModel.updateUrl(
-                            matchUrlFromClipboard(it)
-                        )
-                    }
-                }, maxLines = 1,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
-            )
+    LaunchedEffect(Unit) { withContext(Dispatchers.IO) { CookieManager.getInstance().flush() } }
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        icon = { Icon(Icons.Outlined.Cookie, null) },
+        title = { Text(stringResource(R.string.cookies)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    value = url,
+                    label = { Text("URL") },
+                    onValueChange = { cookiesViewModel.updateUrl(it) },
+                    trailingIcon = {
+                        PasteFromClipBoardButton {
+                            cookiesViewModel.updateUrl(matchUrlFromClipboard(it))
+                        }
+                    },
+                    maxLines = 1,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                )
 
-            TextButtonWithIcon(
-                onClick = { navigateToCookieGeneratorPage() },
-                icon = Icons.Outlined.GeneratingTokens,
-                text = stringResource(id = R.string.generate_new_cookies)
-            )
-
-        }
-    }, dismissButton = {
-        DismissButton {
-            onDismissRequest()
-        }
-    }, confirmButton = {
-        ConfirmButton(enabled = url.isNotEmpty()) {
-            cookiesViewModel.updateCookieProfile()
-            onDismissRequest()
-        }
-    })
-
+                TextButtonWithIcon(
+                    onClick = { navigateToCookieGeneratorPage() },
+                    icon = Icons.Outlined.GeneratingTokens,
+                    text = stringResource(id = R.string.generate_new_cookies),
+                )
+            }
+        },
+        dismissButton = { DismissButton { onDismissRequest() } },
+        confirmButton = {
+            ConfirmButton(enabled = url.isNotEmpty()) {
+                cookiesViewModel.updateCookieProfile()
+                onDismissRequest()
+            }
+        },
+    )
 }
 
 @Composable
-fun DeleteCookieDialog(
-    cookiesViewModel: CookiesViewModel = viewModel(),
-    onDismissRequest: () -> Unit = {}
-) {
+fun DeleteCookieDialog(cookiesViewModel: CookiesViewModel, onDismissRequest: () -> Unit = {}) {
     val state by cookiesViewModel.stateFlow.collectAsState()
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(stringResource(R.string.remove)) },
         text = {
             Text(
-                stringResource(R.string.remove_cookie_profile_desc).format(state.editingCookieProfile.url),
-                style = LocalTextStyle.current.copy(lineBreak = LineBreak.Paragraph)
+                stringResource(R.string.remove_cookie_profile_desc)
+                    .format(state.editingCookieProfile.url),
+                style = LocalTextStyle.current.copy(lineBreak = LineBreak.Paragraph),
             )
         },
-        dismissButton = {
-            DismissButton {
-                onDismissRequest()
-            }
-        }, confirmButton = {
+        dismissButton = { DismissButton { onDismissRequest() } },
+        confirmButton = {
             ConfirmButton {
                 cookiesViewModel.deleteCookieProfile()
                 onDismissRequest()
             }
-        }, icon = { Icon(Icons.Outlined.Delete, null) })
+        },
+        icon = { Icon(Icons.Outlined.Delete, null) },
+    )
 }
 
 @Composable
-fun ClearCookiesDialog(
-    onDismissRequest: () -> Unit = {}, onConfirm: () -> Unit
-) {
+fun ClearCookiesDialog(onDismissRequest: () -> Unit = {}, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(stringResource(R.string.clear_all_cookies)) },
         text = {
             Text(
                 stringResource(R.string.clear_all_cookies_desc),
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
             )
         },
-        dismissButton = {
-            DismissButton {
-                onDismissRequest()
-            }
-        }, confirmButton = {
+        dismissButton = { DismissButton { onDismissRequest() } },
+        confirmButton = {
             ConfirmButton {
                 onConfirm()
                 onDismissRequest()
             }
-        }, icon = { Icon(Icons.Outlined.DeleteForever, null) })
+        },
+        icon = { Icon(Icons.Outlined.DeleteForever, null) },
+    )
 }
 
 @Composable
@@ -421,64 +422,73 @@ fun CookiesQuickSettingsDialog(
     isCookiesEnabled: Boolean = false,
     onCookiesToggled: (Boolean) -> Unit = {},
 ) {
-    SealDialog(onDismissRequest = onDismissRequest, confirmButton = {
-        ConfirmButton(text = stringResource(id = androidx.appcompat.R.string.abc_action_mode_done)) {
-            onDismissRequest()
-            onConfirm()
-        }
-    }, icon = { Icon(imageVector = Icons.Outlined.Cookie, contentDescription = null) },
+    SealDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            ConfirmButton(
+                text = stringResource(id = androidx.appcompat.R.string.abc_action_mode_done)
+            ) {
+                onDismissRequest()
+                onConfirm()
+            }
+        },
+        icon = { Icon(imageVector = Icons.Outlined.Cookie, contentDescription = null) },
         title = {
-            Text(
-                text = stringResource(id = R.string.cookies),
-                textAlign = TextAlign.Center
-            )
-        }, text = {
+            Text(text = stringResource(id = R.string.cookies), textAlign = TextAlign.Center)
+        },
+        text = {
             Column {
                 Text(
                     text = stringResource(id = R.string.refresh_cookies_desc),
                     modifier = Modifier.padding(horizontal = 24.dp),
-//                    style = MaterialTheme.typography.labelLarge,
+                    //                    style = MaterialTheme.typography.labelLarge,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                HorizontalDivider(Modifier.padding(horizontal = 24.dp))
+                androidx.compose.material3.HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 LazyColumn() {
                     items(items = cookieProfiles) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onCookieProfileClicked(it) }
-                                .padding(horizontal = 24.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .clickable { onCookieProfileClicked(it) }
+                                    .padding(horizontal = 24.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Box(
-                                modifier = Modifier
-                                    .padding(end = 12.dp)
-                                    .size(16.dp)
-                                    .background(
-                                        color = it.url
-                                            .hashCode()
-                                            .generateLabelColor(), shape = CircleShape
-                                    )
-                                    .clearAndSetSemantics { }
+                                modifier =
+                                    Modifier.padding(end = 12.dp)
+                                        .size(16.dp)
+                                        .background(
+                                            color = it.url.hashCode().generateLabelColor(),
+                                            shape = CircleShape,
+                                        )
+                                        .clearAndSetSemantics {}
                             ) {}
                             Text(
                                 text = it.url
-//                                , style = MaterialTheme.typography.labelLarge
-                                , modifier = Modifier.weight(1f)
+                                //                                , style =
+                                // MaterialTheme.typography.labelLarge
+                                ,
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                HorizontalDivider(Modifier.padding(horizontal = 24.dp))
+                androidx.compose.material3.HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
                 DialogSwitchItem(
                     text = stringResource(id = R.string.use_cookies),
                     value = isCookiesEnabled,
-                    onValueChange = onCookiesToggled
+                    onValueChange = onCookiesToggled,
                 )
             }
-        })
+        },
+    )
 }
 
 @Preview
@@ -486,21 +496,18 @@ fun CookiesQuickSettingsDialog(
 @Composable
 private fun CookiesQuickSettingsDialogPreview() {
     SealTheme {
-        var isCookiesEnabled by remember {
-            mutableStateOf(false)
-        }
+        var isCookiesEnabled by remember { mutableStateOf(false) }
         CookiesQuickSettingsDialog(
-            cookieProfiles = mutableListOf<CookieProfile>().apply {
-                repeat(4) {
-                    add(
-                        CookieProfile(
-                            id = it,
-                            url = "https://www.example$it.com",
-                            content = ""
+            cookieProfiles =
+                mutableListOf<CookieProfile>().apply {
+                    repeat(4) {
+                        add(
+                            CookieProfile(id = it, url = "https://www.example$it.com", content = "")
                         )
-                    )
-                }
-            }, isCookiesEnabled = isCookiesEnabled, onCookiesToggled = { isCookiesEnabled = it }
+                    }
+                },
+            isCookiesEnabled = isCookiesEnabled,
+            onCookiesToggled = { isCookiesEnabled = it },
         )
     }
 }

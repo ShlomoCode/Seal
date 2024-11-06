@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="download_desc">Затим, кликните на „Преузми“ након прилагођавања подешавања.</string>
+    <string name="download_desc">Затим, додирните на „Преузми“ након прилагођавања подешавања.</string>
     <string name="check_download_settings_desc">Погледајте подешавања преузимања и уверите се да имате најновију верзију yt-dlp пре коришћења.</string>
     <string name="download_playlist">Преузми плејлисту</string>
     <string name="download_playlist_desc">Преузмите више видео снимака с плејлисте</string>
@@ -11,7 +11,7 @@
     <string name="channel_description">Обавештење о преузетим фајловима и напретку</string>
     <string name="download_finish_notification">Преузимање је завршено. Додирните да бисте отворили.</string>
     <string name="execute_command_notification">Покретање прилагођених команди…</string>
-    <string name="battery_settings_desc">Подесите потрошњу батерије ове апликације на „Неограничено“ у системским подешавањима да бисте преузимали у позадини.</string>
+    <string name="battery_settings_desc">Подесите потрошњу батерије ове апликације на „Неограничено“ у системским подешавањима да би се преузимање наставило у позадини.</string>
     <string name="options">Опције</string>
     <string name="additional_settings">Додатна подешавања</string>
     <string name="download_range_selection">Избор плејлисте</string>
@@ -33,7 +33,7 @@
     <string name="downloading_indicator_text">Преузимање је у току…</string>
     <string name="task_canceled">Задатак преузимања је отказан</string>
     <string name="info_copied">Информације су копиране у привремену меморију</string>
-    <string name="status_enqueued">Додато у ред чекања</string>
+    <string name="status_enqueued">Стављено у редослед</string>
     <string name="status_canceled">Отказано</string>
     <string name="github_issue">GitHub пријава проблема</string>
     <string name="github_issue_desc">Пријавите проблем или пошаљите захтев за нову функцију</string>
@@ -71,18 +71,18 @@
     <string name="off">Искључено</string>
     <string name="cancel">Откажи</string>
     <string name="settings_before_download">Конфигурација пре преузимања</string>
-    <string name="settings_before_download_desc">Конфигуришите преференце пре преузимања</string>
+    <string name="settings_before_download_desc">Подесите преференце пре преузимања</string>
     <string name="settings_before_download_text">Прилагодите ово преузимање</string>
     <string name="error_copied">Извештај о грешци је копиран у привремену меморију</string>
     <string name="thumbnail">Сличица</string>
     <string name="convert_audio_format_desc">Поновно кодирање фајлова аудио снимака узроковаће губитак квалитета звука и повећање величине фајла.</string>
     <string name="video_quality">Квалитет видео снимка</string>
     <string name="video_quality_desc">Ограничите квалитет видео снимка, када их је доступно више</string>
-    <string name="convert_audio">Конвертуј</string>
+    <string name="convert_audio">Претвори</string>
     <string name="user_guide">Упутство за употребу</string>
     <string name="open_settings">Отвори подешавања</string>
-    <string name="paste_desc">Кликните на „Налепи“ да бисте добили линк видео снимка из привремене меморије.</string>
-    <string name="download_history_desc">Проверите преузимања у апликацији и управљајте њима, укључујући фајлове видео и аудио снимака.</string>
+    <string name="paste_desc">Додирните на „Налепи“ да бисте добили линк видео снимка из привремене меморије.</string>
+    <string name="download_history_desc">Проверите и управљајте преузимањима у апликацији, укључујући фајлове видео и аудио снимака.</string>
     <string name="video_url">Линк видео снимка</string>
     <string name="concurrent_download">Вишенитно преузимање</string>
     <string name="concurrent_download_desc">Преузмите више делова M3U8/MPD видео снимака паралелно</string>
@@ -157,7 +157,7 @@
     <string name="download_error_msg">Није могуће преузети фајл</string>
     <string name="general_settings">Опште</string>
     <string name="language_settings">Подеси језик</string>
-    <string name="paste_msg">Налепљена URL адреса из привремене меморије</string>
+    <string name="paste_msg">Налепљена URL адреса</string>
     <string name="task_running">Постојећи задатак преузимања је већ покренут</string>
     <string name="extract_audio_summary">Преузмите и сачувајте аудио снимак, уместо видео снимка</string>
     <string name="ytdlp_version">Yt-dlp верзија</string>
@@ -181,7 +181,7 @@
     <string name="status_error">Грешка</string>
     <string name="template_imported">Увезен(о) %1$d шаблон(а)</string>
     <string name="copy_link">Копирај линк</string>
-    <string name="copy_error_report">Извештај о грешци</string>
+    <string name="copy_error_report">Копирај извештај</string>
     <string name="network">Мрежа</string>
     <string name="lowest_quality">Најнижи квалитет</string>
     <string name="video_resolution">Резолуција видео снимка</string>
@@ -190,12 +190,12 @@
     <string name="dark_theme">Тамна тема</string>
     <string name="follow_system">Системски</string>
     <string name="on">Укључено</string>
-    <string name="convert_audio_format">Конвертуј формат аудио снимка</string>
+    <string name="convert_audio_format">Претвори формат звучног снимка</string>
     <string name="yt_dlp_docs">Референце о употреби yt-dlp</string>
     <string name="edit_template_desc">Апликација ће додати излазну путању и URL адресу.</string>
-    <string name="convert_to">Конвертуј у %1$s</string>
+    <string name="convert_to">Претвори у %1$s</string>
     <string name="video_format_preference">Преферирани формат видео снимка</string>
-    <string name="not_convert">Неконвертовано</string>
+    <string name="not_convert">Непретворено</string>
     <string name="video_format">Формат видео снимка</string>
     <string name="best_quality">Најбољи квалитет</string>
     <string name="export_to_clipboard">Извези у привремену меморију</string>
@@ -245,7 +245,7 @@
     <string name="show_logs">Прикажи евиденцију</string>
     <string name="logs">Евиденција</string>
     <string name="subtitle_sponsorblock">Приликом уклањања SponsorBlock сегмената, титлови могу бити несинхронизовани.</string>
-    <string name="embed_subtitles_mkv_msg">Да би се уградили титлови, видео снимци ће бити пребачени у mkv контејнер. Можете користити VLC Media Player или друге компатибилне апликације за гледање видео снимака с уграђеним титловима.</string>
+    <string name="embed_subtitles_mkv_msg">Да би се уградили обезбеђени титлови, видео снимци ће бити пребачени у mkv контејнер. Можете користити VLC Media Player или друге компатибилне апликације за гледање видео снимака с обезбеђеним титловима.</string>
     <string name="filesize_gb">%.2f ГБ</string>
     <string name="filesize_mb">%.2f МБ</string>
     <string name="share">Дели</string>
@@ -406,4 +406,36 @@
     <string name="remux_container_mkv_desc">Пребаци видео снимке у MKV контејнер ради боље компатибилности</string>
     <string name="remux_container_mkv">Пребаци контејнер видео снимка</string>
     <string name="cookies_in_database">Укупно %1$d колачића са %2$d веб-сајтова</string>
+    <string name="every_day">Сваког дана</string>
+    <string name="every_week">Сваке седмице</string>
+    <string name="every_month">Сваког месеца</string>
+    <string name="all_languages">Сви језици</string>
+    <string name="playlist">Плејлиста</string>
+    <string name="preset">Унапред подешено</string>
+    <string name="prefer_placeholder">Преферирај %1$s</string>
+    <string name="edit_preset">Измени унапред подешено</string>
+    <string name="preset_format_selection_desc">Преузмите аутоматски користећи своје преференце формата</string>
+    <string name="task_added">Задатак је додат у редослед</string>
+    <plurals name="video_count">
+        <item quantity="one">%d видео снимак</item>
+        <item quantity="few">%d видео снимка</item>
+        <item quantity="other">%d видео снимака</item>
+    </plurals>
+    <plurals name="audio_count">
+        <item quantity="one">%d аудио снимак</item>
+        <item quantity="few">%d аудио снимка</item>
+        <item quantity="other">%d аудио снимака</item>
+    </plurals>
+    <string name="custom_format_selection_desc">Бирајте између формата, титлова и додатно прилагодите</string>
+    <string name="proceed">Настави</string>
+    <string name="best_quality_desc">Преузмите најбољи доступни формат</string>
+    <string name="you_ll_find_your_downloads_here">Овде ћете пронаћи своја преузимања</string>
+    <string name="download_hint">Додирните дугме за преузимање или поделите линк видео снимка до ове апликације да бисте започели преузимање</string>
+    <string name="status_downloaded">Преузето</string>
+    <string name="all">Све</string>
+    <string name="select_multiple_link">Изаберите неки од %1$d линкова</string>
+    <string name="download_queue">Редослед преузимања</string>
+    <string name="show_navigation_drawer">Прикажи фиоку за навигацију</string>
+    <string name="delete">Избриши</string>
+    <string name="resume">Настави</string>
 </resources>

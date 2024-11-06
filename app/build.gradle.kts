@@ -5,57 +5,14 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("com.google.devtools.ksp")
-    kotlin("kapt")
-    id("org.jetbrains.kotlin.android")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.room)
+    alias(libs.plugins.ktfmt.gradle)
 }
-apply(plugin = "dagger.hilt.android.plugin")
-
-sealed class Version(
-    open val versionMajor: Int,
-    val versionMinor: Int,
-    val versionPatch: Int,
-    val versionBuild: Int = 0
-) {
-    abstract fun toVersionName(): String
-    class Alpha(versionMajor: Int, versionMinor: Int, versionPatch: Int, versionBuild: Int) :
-        Version(versionMajor, versionMinor, versionPatch, versionBuild) {
-        override fun toVersionName(): String =
-            "${versionMajor}.${versionMinor}.${versionPatch}-alpha.$versionBuild"
-    }
-
-    class Beta(versionMajor: Int, versionMinor: Int, versionPatch: Int, versionBuild: Int) :
-        Version(versionMajor, versionMinor, versionPatch, versionBuild) {
-        override fun toVersionName(): String =
-            "${versionMajor}.${versionMinor}.${versionPatch}-beta.$versionBuild"
-    }
-
-    class Stable(versionMajor: Int, versionMinor: Int, versionPatch: Int) :
-        Version(versionMajor, versionMinor, versionPatch) {
-        override fun toVersionName(): String =
-            "${versionMajor}.${versionMinor}.${versionPatch}"
-    }
-
-    class ReleaseCandidate(
-        versionMajor: Int,
-        versionMinor: Int,
-        versionPatch: Int,
-        versionBuild: Int
-    ) :
-        Version(versionMajor, versionMinor, versionPatch, versionBuild) {
-        override fun toVersionName(): String =
-            "${versionMajor}.${versionMinor}.${versionPatch}-rc.$versionBuild"
-    }
-}
-
-val currentVersion: Version = Version.Stable(
-    versionMajor = 1,
-    versionMinor = 12,
-    versionPatch = 1,
-)
 
 val keystorePropertiesFile: File = rootProject.file("keystore.properties")
 
@@ -63,14 +20,19 @@ val splitApks = !project.hasProperty("noSplits")
 
 val abiFilterList = (properties["ABI_FILTERS"] as String).split(';')
 
+val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86" to 3, "x86_64" to 4)
+
+val baseVersionName = currentVersion.name
+val currentVersionCode = currentVersion.code.toInt()
 
 android {
+    compileSdk = 35
+
     if (keystorePropertiesFile.exists()) {
         val keystoreProperties = Properties()
         keystoreProperties.load(FileInputStream(keystorePropertiesFile))
         signingConfigs {
-            getByName("debug")
-            {
+            create("githubPublish") {
                 keyAlias = keystoreProperties["keyAlias"].toString()
                 keyPassword = keystoreProperties["keyPassword"].toString()
                 storeFile = file(keystoreProperties["storeFile"]!!)
@@ -79,15 +41,18 @@ android {
         }
     }
 
-    compileSdk = 34
-
-
+    buildFeatures { buildConfig = true }
 
     defaultConfig {
         applicationId = "com.junkfood.seal"
-        minSdk = 21
-        targetSdk = 34
-        versionCode = 11210
+        minSdk = 24
+        targetSdk = 35
+        versionCode = 200_000_140
+        check(versionCode == currentVersionCode)
+
+        versionName = baseVersionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables { useSupportLibrary = true }
 
         if (splitApks) {
             splits {
@@ -98,35 +63,22 @@ android {
                     isUniversalApk = true
                 }
             }
-        }
-
-        versionName = currentVersion.toVersionName().run {
-            if (!splitApks) "$this-(F-Droid)"
-            else this
-        }
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
-        ksp {
-            arg(RoomSchemaArgProvider(File(projectDir, "schemas")))
-            arg("room.incremental", "true")
-        }
-        if (!splitApks) {
-            ndk {
-                abiFilters.addAll(abiFilterList)
-            }
+        } else {
+            ndk { abiFilters.addAll(abiFilterList) }
         }
     }
-    val abiCodes = mapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86" to 3, "x86_64" to 4)
+
+    room { schemaDirectory("$projectDir/schemas") }
+    ksp { arg("room.incremental", "true") }
 
     androidComponents {
         onVariants { variant ->
-
             variant.outputs.forEach { output ->
                 val name =
                     if (splitApks) {
-                        output.filters.find { it.filterType == FilterConfiguration.FilterType.ABI }?.identifier
+                        output.filters
+                            .find { it.filterType == FilterConfiguration.FilterType.ABI }
+                            ?.identifier
                     } else {
                         abiFilterList.firstOrNull()
                     }
@@ -136,7 +88,6 @@ android {
                 if (baseAbiCode != null) {
                     output.versionCode.set(baseAbiCode + (output.versionCode.get() ?: 0))
                 }
-
             }
         }
     }
@@ -144,16 +95,18 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
             )
             if (keystorePropertiesFile.exists()) {
-                signingConfig = signingConfigs.getByName("debug")
+                signingConfig = signingConfigs.getByName("githubPublish")
             }
         }
         debug {
             if (keystorePropertiesFile.exists()) {
-                signingConfig = signingConfigs.getByName("debug")
+                signingConfig = signingConfigs.getByName("githubPublish")
             }
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
@@ -161,13 +114,27 @@ android {
         }
     }
 
-    buildFeatures {
-        compose = true
+    flavorDimensions += "publishChannel"
+
+    productFlavors {
+        create("generic") {
+            dimension = "publishChannel"
+            isDefault = true
+        }
+
+        create("githubPreview") {
+            dimension = "publishChannel"
+            applicationIdSuffix = ".preview"
+            resValue("string", "app_name", "Seal Preview")
+        }
+
+        create("fdroid") {
+            dimension = "publishChannel"
+            versionName = "$baseVersionName-(F-Droid)"
+        }
     }
 
-    lint {
-        disable.addAll(listOf("MissingTranslation", "ExtraTranslation", "MissingQuantity"))
-    }
+    lint { disable.addAll(listOf("MissingTranslation", "ExtraTranslation", "MissingQuantity")) }
 
     applicationVariants.all {
         outputs.all {
@@ -176,92 +143,51 @@ android {
         }
     }
 
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn"
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.androidxComposeCompiler.get()
-    }
+    kotlinOptions { freeCompilerArgs = freeCompilerArgs + "-opt-in=kotlin.RequiresOptIn" }
+
     packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
+        resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
         jniLibs.useLegacyPackaging = true
     }
-    androidResources {
-        generateLocaleConfig = true
-    }
+    androidResources { generateLocaleConfig = true }
 
     namespace = "com.junkfood.seal"
 }
 
-kotlin {
-    jvmToolchain(11)
-}
+ktfmt { kotlinLangStyle() }
+
+kotlin { jvmToolchain(21) }
 
 dependencies {
-
     implementation(project(":color"))
 
-    //Core libs for the app
     implementation(libs.bundles.core)
 
-    //Lifecycle support for Jetpack Compose
     implementation(libs.androidx.lifecycle.runtimeCompose)
-    implementation(libs.androidx.lifecycle.viewModelCompose)
 
-    //Material UI, Accompanist...
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.bundles.androidxCompose)
     implementation(libs.bundles.accompanist)
 
-    //Coil (For Jetpack Compose)
     implementation(libs.coil.kt.compose)
 
-    //Serialization
     implementation(libs.kotlinx.serialization.json)
 
-    //DI (Dependency Injection - Hilt)
-    implementation(libs.androidx.hilt.navigation.compose)
-    kapt(libs.hilt.ext.compiler)
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
 
-    //Database powered by Room
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // Network requests (OkHttp)
     implementation(libs.okhttp)
 
-    //YoutubeDl for Android (youtubedl-android)
     implementation(libs.bundles.youtubedlAndroid)
 
-    //SVG implementation (AndroidSVG by Caverock)
-    implementation(libs.caverock.androidsvg)
-
-    //MMKV (Ultrafast Key-Value storage)
     implementation(libs.mmkv)
 
-    //Unit testing libraries
     testImplementation(libs.junit4)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
-//  androidTestImplementation(libs.androidx.compose.ui.test)
-
-    //UI debugging library for Jetpack Compose
     implementation(libs.androidx.compose.ui.tooling)
-
-}
-
-class RoomSchemaArgProvider(
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    val schemaDir: File
-) : CommandLineArgumentProvider {
-
-    override fun asArguments(): Iterable<String> {
-        return listOf("room.schemaLocation=${schemaDir.path}")
-    }
 }

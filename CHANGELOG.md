@@ -7,7 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v2.0.0][2.0.0] - unreleased
 
-Under development, please stay tuned!
+### Notable changes from v1.13
+
+- Concurrent downloading
+- Download queue
+- User interface overhaul
+- Large screen support
+- Resume failed/canceled download
+- Backup & restore unfinished tasks in the download queue
+- Select from formats/playlists in Quick Download
+- Predictive back animation support for Android 14+
+- Bump up minimum API level to 24 (Android 7.0)
+
+## [v1.13.0][1.13.0] - 2024-08-18
+
+### Fixed
+
+- Fix the issue where exported command templates could not be imported in v1.12.x
+- Fix an unexpected behavior where multiple formats would be selected
+
+### Change
+
+- Update `youtubedl-android` to v0.16.1
+- Update translations
 
 ## [v1.12.1][1.12.1] - 2024-04-17
 
@@ -19,7 +41,7 @@ Under development, please stay tuned!
 ### Fixed
 
 * Intercept non-HTTP(s) URLs opened in WebView
-* Videos are remuxed to mkv evem when download subtitle is disabled
+* Videos are remuxed to mkv even when download subtitle is disabled
 * Use MD2 ModalBottomSheetLayout in devices on API < 30
 * Block downloads when updating yt-dlp
 
@@ -357,3 +379,5 @@ Under development, please stay tuned!
 [1.12.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.12.0
 
 [1.12.1]: https://github.com/JunkFood02/Seal/releases/tag/v1.12.1
+
+[1.13.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.13.0

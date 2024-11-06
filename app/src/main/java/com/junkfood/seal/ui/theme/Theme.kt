@@ -1,23 +1,22 @@
 package com.junkfood.seal.ui.theme
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import android.view.Window
+import android.os.Build
+import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextDirection
-import androidx.core.view.WindowCompat
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.material.color.MaterialColors
+import com.junkfood.seal.ui.common.LocalFixedColorRoles
+import com.kyant.monet.LocalTonalPalettes
 import com.kyant.monet.dynamicColorScheme
 
 fun Color.applyOpacity(enabled: Boolean): Color {
@@ -25,69 +24,77 @@ fun Color.applyOpacity(enabled: Boolean): Color {
 }
 
 @Composable
+@ReadOnlyComposable
 fun Color.harmonizeWith(other: Color) =
     Color(MaterialColors.harmonize(this.toArgb(), other.toArgb()))
 
 @Composable
+@ReadOnlyComposable
 fun Color.harmonizeWithPrimary(): Color =
     this.harmonizeWith(other = MaterialTheme.colorScheme.primary)
 
-
-private tailrec fun Context.findWindow(): Window? =
-    when (this) {
-        is Activity -> window
-        is ContextWrapper -> baseContext.findWindow()
-        else -> null
-    }
-
-@OptIn(ExperimentalTextApi::class)
 @Composable
 fun SealTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     isHighContrastModeEnabled: Boolean = false,
-    isDynamicColorEnabled: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme =
-        dynamicColorScheme(!darkTheme).run {
-            if (isHighContrastModeEnabled && darkTheme) copy(
-                surface = Color.Black,
-                background = Color.Black,
-            )
-            else this
-        }
-    val window = LocalView.current.context.findWindow()
     val view = LocalView.current
 
-    window?.let {
-        WindowCompat.getInsetsController(it, view).isAppearanceLightStatusBars = darkTheme
+    LaunchedEffect(darkTheme) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (darkTheme) {
+                view.windowInsetsController?.setSystemBarsAppearance(
+                    0,
+                    APPEARANCE_LIGHT_STATUS_BARS,
+                )
+            } else {
+                view.windowInsetsController?.setSystemBarsAppearance(
+                    APPEARANCE_LIGHT_STATUS_BARS,
+                    APPEARANCE_LIGHT_STATUS_BARS,
+                )
+            }
+        }
     }
 
-    rememberSystemUiController(window).setSystemBarsColor(Color.Transparent, !darkTheme)
+    val colorScheme =
+        dynamicColorScheme(!darkTheme).run {
+            if (isHighContrastModeEnabled && darkTheme)
+                copy(
+                    surface = Color.Black,
+                    background = Color.Black,
+                    surfaceContainerLowest = Color.Black,
+                    surfaceContainerLow = surfaceContainerLowest,
+                    surfaceContainer = surfaceContainerLow,
+                    surfaceContainerHigh = surfaceContainerLow,
+                    surfaceContainerHighest = surfaceContainer,
+                )
+            else this
+        }
 
-    ProvideTextStyle(
-        value = LocalTextStyle.current.copy(
+    val textStyle =
+        LocalTextStyle.current.copy(
             lineBreak = LineBreak.Paragraph,
-            textDirection = TextDirection.Content
+            textDirection = TextDirection.Content,
         )
+
+    val tonalPalettes = LocalTonalPalettes.current
+
+    CompositionLocalProvider(
+        LocalFixedColorRoles provides FixedColorRoles.fromTonalPalettes(tonalPalettes),
+        LocalTextStyle provides textStyle,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,
             shapes = Shapes,
-            content = content
+            content = content,
         )
     }
 }
 
 @Composable
-fun PreviewThemeLight(
-    content: @Composable () -> Unit
-) {
-    MaterialTheme(
-        colorScheme = dynamicColorScheme(),
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+@Deprecated("Use SealTheme instead", replaceWith = ReplaceWith("SealTheme(content)"))
+fun PreviewThemeLight(content: @Composable () -> Unit) {
+    SealTheme(darkTheme = false, content = content)
 }

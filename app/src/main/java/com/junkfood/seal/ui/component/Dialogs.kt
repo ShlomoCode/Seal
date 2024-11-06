@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,7 +37,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.google.accompanist.flowlayout.FlowRow
 import com.junkfood.seal.R
 import com.junkfood.seal.ui.theme.FixedAccentColors
 import com.junkfood.seal.ui.theme.SealTheme
@@ -53,7 +54,9 @@ fun HelpDialog(
     text: String,
     onDismissRequest: () -> Unit = {},
     dismissButton: @Composable (() -> Unit)? = null,
-    confirmButton: @Composable () -> Unit = { ConfirmButton(text = stringResource(id = R.string.got_it)) { onDismissRequest() } },
+    confirmButton: @Composable () -> Unit = {
+        ConfirmButton(text = stringResource(id = R.string.got_it)) { onDismissRequest() }
+    },
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -65,7 +68,7 @@ fun HelpDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SealDialog(
     modifier: Modifier = Modifier,
@@ -81,12 +84,12 @@ fun SealDialog(
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
-    properties: DialogProperties = DialogProperties()
+    properties: DialogProperties = DialogProperties(),
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
         modifier = modifier,
-        properties = properties
+        properties = properties,
     ) {
         Surface(
             modifier = modifier,
@@ -94,14 +97,11 @@ fun SealDialog(
             color = containerColor,
             tonalElevation = tonalElevation,
         ) {
-            Column(
-                modifier = Modifier.padding(DialogVerticalPadding)
-            ) {
+            Column(modifier = Modifier.padding(DialogVerticalPadding)) {
                 icon?.let {
                     CompositionLocalProvider(LocalContentColor provides iconContentColor) {
                         Box(
-                            Modifier
-                                .padding(IconPadding)
+                            Modifier.padding(IconPadding)
                                 .padding(DialogHorizontalPadding)
                                 .align(Alignment.CenterHorizontally)
                         ) {
@@ -112,12 +112,13 @@ fun SealDialog(
                 title?.let {
                     CompositionLocalProvider(LocalContentColor provides titleContentColor) {
                         val textStyle =
-                            MaterialTheme.typography.headlineSmall.copy(textAlign = TextAlign.Center)
+                            MaterialTheme.typography.headlineSmall.copy(
+                                textAlign = TextAlign.Center
+                            )
                         ProvideTextStyle(textStyle) {
                             Box(
                                 // Align the title to the center when an icon is present.
-                                Modifier
-                                    .padding(TitlePadding)
+                                Modifier.padding(TitlePadding)
                                     .padding(DialogHorizontalPadding)
                                     .align(
                                         if (icon == null) {
@@ -134,12 +135,10 @@ fun SealDialog(
                 }
                 text?.let {
                     CompositionLocalProvider(LocalContentColor provides textContentColor) {
-                        val textStyle =
-                            MaterialTheme.typography.bodyMedium
+                        val textStyle = MaterialTheme.typography.bodyMedium
                         ProvideTextStyle(textStyle) {
                             Box(
-                                Modifier
-                                    .weight(weight = 1f, fill = false)
+                                Modifier.weight(weight = 1f, fill = false)
                                     .padding(TextPadding)
                                     .align(Alignment.Start)
                             ) {
@@ -148,17 +147,12 @@ fun SealDialog(
                         }
                     }
                 }
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(DialogHorizontalPadding)
-                ) {
-                    val textStyle =
-                        MaterialTheme.typography.labelLarge
+                Box(modifier = Modifier.align(Alignment.End).padding(DialogHorizontalPadding)) {
+                    val textStyle = MaterialTheme.typography.labelLarge
                     ProvideTextStyle(value = textStyle) {
                         FlowRow(
-                            mainAxisSpacing = ButtonsMainAxisSpacing,
-                            crossAxisSpacing = ButtonsCrossAxisSpacing
+                            horizontalArrangement = Arrangement.spacedBy(ButtonsMainAxisSpacing),
+                            verticalArrangement = Arrangement.spacedBy(ButtonsCrossAxisSpacing),
                         ) {
                             dismissButton?.invoke()
                             confirmButton?.invoke()
@@ -175,27 +169,21 @@ fun SealDialogButtonVariant(
     modifier: Modifier = Modifier,
     shape: Shape = MiddleButtonShape,
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Box() {
         Surface(
-            modifier = modifier
-                .clickable(onClick = onClick)
-                .fillMaxWidth()
-                .height(48.dp),
+            modifier = modifier.clickable(onClick = onClick).fillMaxWidth().height(48.dp),
             color = FixedAccentColors.secondaryFixed,
-            shape = shape
-        ) {
-
-        }
+            shape = shape,
+        ) {}
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
             color = FixedAccentColors.onSecondaryFixed,
-            modifier = Modifier.align(Alignment.Center)
+            modifier = Modifier.align(Alignment.Center),
         )
     }
-
 }
 
 @Preview(name = "dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -204,55 +192,46 @@ fun SealDialogButtonVariant(
 private fun ButtonVariantPreview() {
     SealTheme {
         SealDialogVariant(
-            onDismissRequest = {}, modifier = Modifier,
+            onDismissRequest = {},
+            modifier = Modifier,
             icon = {
                 Icon(
                     imageVector = Icons.Outlined.SignalCellularConnectedNoInternet4Bar,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             },
             title = {
                 Text(
                     text = "Download with cellular network?",
                     style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
             },
             buttons = {
                 SealDialogButtonVariant(
                     text = stringResource(R.string.allow_always),
-                    shape = TopButtonShape
+                    shape = TopButtonShape,
                 ) {}
                 SealDialogButtonVariant(
                     text = stringResource(id = R.string.allow_once),
-                    shape = MiddleButtonShape
+                    shape = MiddleButtonShape,
                 ) {}
                 SealDialogButtonVariant(
                     text = stringResource(R.string.dont_allow),
-                    shape = BottomButtonShape
+                    shape = BottomButtonShape,
                 ) {}
-            }
+            },
         )
-
-
     }
 }
 
-val TopButtonShape = RoundedCornerShape(
-    topStart = 12.dp,
-    topEnd = 12.dp,
-    bottomStart = 4.dp,
-    bottomEnd = 4.dp
-)
+val TopButtonShape =
+    RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
 
 val MiddleButtonShape = RoundedCornerShape(4.dp)
 
-val BottomButtonShape = RoundedCornerShape(
-    topStart = 4.dp,
-    topEnd = 4.dp,
-    bottomStart = 12.dp,
-    bottomEnd = 12.dp
-)
+val BottomButtonShape =
+    RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 12.dp, bottomEnd = 12.dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -269,27 +248,20 @@ fun SealDialogVariant(
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
-    properties: DialogProperties = DialogProperties()
+    properties: DialogProperties = DialogProperties(),
 ) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        modifier = modifier,
-        properties = properties
-    ) {
+    AlertDialog(onDismissRequest = onDismissRequest, modifier = modifier, properties = properties) {
         Surface(
             modifier = modifier,
             shape = shape,
             color = containerColor,
             tonalElevation = tonalElevation,
         ) {
-            Column(
-                modifier = Modifier.padding(DialogVerticalPadding)
-            ) {
+            Column(modifier = Modifier.padding(DialogVerticalPadding)) {
                 icon?.let {
                     CompositionLocalProvider(LocalContentColor provides iconContentColor) {
                         Box(
-                            Modifier
-                                .padding(IconPadding)
+                            Modifier.padding(IconPadding)
                                 .padding(DialogHorizontalPadding)
                                 .align(Alignment.CenterHorizontally)
                         ) {
@@ -303,8 +275,7 @@ fun SealDialogVariant(
                         ProvideTextStyle(textStyle.copy(textAlign = TextAlign.Center)) {
                             Box(
                                 // Align the title to the center when an icon is present.
-                                Modifier
-                                    .padding(TitlePadding)
+                                Modifier.padding(TitlePadding)
                                     .padding(DialogHorizontalPadding)
                                     .align(
                                         if (icon == null) {
@@ -321,12 +292,10 @@ fun SealDialogVariant(
                 }
                 text?.let {
                     CompositionLocalProvider(LocalContentColor provides textContentColor) {
-                        val textStyle =
-                            MaterialTheme.typography.bodyMedium
+                        val textStyle = MaterialTheme.typography.bodyMedium
                         ProvideTextStyle(textStyle) {
                             Box(
-                                Modifier
-                                    .weight(weight = 1f, fill = false)
+                                Modifier.weight(weight = 1f, fill = false)
                                     .padding(TextPadding)
                                     .align(Alignment.Start)
                             ) {
@@ -337,7 +306,7 @@ fun SealDialogVariant(
                 }
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(DialogHorizontalPadding)
+                    modifier = Modifier.padding(DialogHorizontalPadding),
                 ) {
                     buttons?.invoke()
                 }
@@ -354,11 +323,9 @@ fun DialogSubtitle(
 ) {
     Text(
         text = text,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(top = 16.dp, bottom = 4.dp),
+        modifier =
+            modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(top = 16.dp, bottom = 4.dp),
         color = color,
-        style = MaterialTheme.typography.labelLarge
+        style = MaterialTheme.typography.labelLarge,
     )
 }

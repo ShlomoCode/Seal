@@ -20,7 +20,7 @@
     <string name="language">界面语言</string>
     <string name="language_settings">设置界面语言</string>
     <string name="task_running">已有正在运行中的下载任务</string>
-    <string name="paste_msg">从剪贴板获取视频链接</string>
+    <string name="paste_msg">粘贴 URL</string>
     <string name="paste_fail_msg">未在剪贴板中匹配到视频链接</string>
     <string name="download">下载</string>
     <string name="url_empty">视频链接不能为空</string>
@@ -133,7 +133,7 @@
     <string name="translate_desc">在 Weblate 上帮助我们翻译此应用</string>
     <string name="prefix">输出路径模板</string>
     <string name="embed_subtitles">封装字幕</string>
-    <string name="embed_subtitles_desc">将下载的字幕封装到视频文件中</string>
+    <string name="embed_subtitles_desc">如可用将软字幕嵌入到视频中</string>
     <string name="new_template">新建命令模板</string>
     <string name="template_label">模板标签</string>
     <string name="remove_template">移除？</string>
@@ -146,7 +146,7 @@
     <string name="github_issue_desc">提交错误报告或改进建议</string>
     <string name="info_copied">信息已复制到剪贴板</string>
     <string name="status_enqueued">等待开始</string>
-    <string name="status_completed">下载完成</string>
+    <string name="status_completed">已完成</string>
     <string name="status_downloading">下载中</string>
     <string name="status_canceled">已取消</string>
     <string name="status_fetching_video_info">正在获取信息</string>
@@ -154,7 +154,7 @@
     <string name="restart">重新开始</string>
     <string name="status_error">发生错误</string>
     <string name="copy_link">复制链接</string>
-    <string name="copy_error_report">复制错误报告</string>
+    <string name="copy_error_report">复制报告</string>
     <string name="video_resolution">分辨率</string>
     <string name="video_file_size">视频文件大小</string>
     <string name="export_to_clipboard">导出到剪贴板</string>
@@ -193,7 +193,7 @@
     <string name="file_unavailable">无法打开此文件，其可能已被移动或删除</string>
     <string name="network">网络</string>
     <string name="rate_limit">限速下载</string>
-    <string name="rate_limit_desc">限制下载时使用的最大速率</string>
+    <string name="rate_limit_desc">限制最大下载速度</string>
     <string name="max_rate">最高速率</string>
     <string name="high_contrast">高对比度深色主题</string>
     <string name="invalid_input">输入不合法</string>
@@ -246,7 +246,7 @@
     <string name="show_logs">显示日志</string>
     <string name="logs">日志</string>
     <string name="subtitle_sponsorblock">从视频中移除 SponsorBlock 段落会导致字幕时间轴错位。</string>
-    <string name="embed_subtitles_mkv_msg">字幕与视频会被重封装到 MKV 容器中；使用 VLC 播放器或其他兼容的应用以播放封装有字幕的视频文件。</string>
+    <string name="embed_subtitles_mkv_msg">为嵌入软字幕，视频将被封装到 MKV 容器中。你可以使用 VLC 播放器或其他兼容的应用播放内嵌软字幕的视频。</string>
     <string name="filesize_gb">%.2f GB</string>
     <string name="filesize_mb">%.2f MB</string>
     <string name="share">分享</string>
@@ -401,7 +401,36 @@
     <string name="redownload">重新下载</string>
     <string name="export_to">导出到</string>
     <string name="download_archive_error">此视频已被下载。如果这不是预期的行为，请检查你的下载存档。</string>
-    <string name="remux_container_mkv">复用视频容器</string>
-    <string name="remux_container_mkv_desc">复用视频至 MKV 容器，改进兼容性</string>
+    <string name="remux_container_mkv">视频封装容器</string>
+    <string name="remux_container_mkv_desc">封装视频至 MKV 容器，改进兼容性</string>
     <string name="cookies_in_database">共 %1$d 个 cookies，来自 %2$d 个站点</string>
+    <string name="every_day">每天</string>
+    <string name="every_week">每周</string>
+    <string name="every_month">每月</string>
+    <string name="proceed">继续</string>
+    <string name="best_quality_desc">下载可用的最佳格式</string>
+    <string name="prefer_placeholder">首选 %1$s</string>
+    <string name="preset_format_selection_desc">使用格式偏好自动下载</string>
+    <string name="edit_preset">编辑预设</string>
+    <string name="all_languages">所有语言</string>
+    <string name="preset">预设</string>
+    <string name="playlist">播放列表</string>
+    <plurals name="audio_count">
+        <item quantity="other">%d 个音频</item>
+    </plurals>
+    <plurals name="video_count">
+        <item quantity="other">%d 个视频</item>
+    </plurals>
+    <string name="custom_format_selection_desc">选择格式和字幕并进一步定制</string>
+    <string name="task_added">已添加任务到队列</string>
+    <string name="you_ll_find_your_downloads_here">你会在这里找到下载文件</string>
+    <string name="download_hint">轻按下载按钮或分享视频链接到本应用来启动下载</string>
+    <string name="status_downloaded">已下载</string>
+    <string name="all">全部</string>
+    <string name="select_multiple_link">从 %1$d 个链接中选择</string>
+    <string name="download_queue">下载队列</string>
+    <string name="show_navigation_drawer">显示导航抽屉</string>
+    <string name="resume">继续</string>
+    <string name="delete">删除</string>
+    <string name="media_info">媒体信息</string>
 </resources>

@@ -13,7 +13,7 @@
     <string name="fetch_info_error_msg">Не получается получить информацию о видео</string>
     <string name="language_settings">Установить язык</string>
     <string name="task_running">Существующая загрузка уже запущена</string>
-    <string name="paste_msg">Вставлен URL-адрес из буфера обмена</string>
+    <string name="paste_msg">Вставлен URL-адрес</string>
     <string name="delete_info_msg">Удалить \"%1$s\" из Вашей истории загрузок навсегда?</string>
     <string name="confirm">Подтвердить</string>
     <string name="open_url">Открыть ссылку</string>
@@ -132,7 +132,7 @@
     <string name="settings_before_download_text">Настройте эту загрузку</string>
     <string name="prefix">Шаблон пути</string>
     <string name="embed_subtitles">Встраивание субтитров</string>
-    <string name="embed_subtitles_desc">Встраивать субтитры, если они доступны</string>
+    <string name="embed_subtitles_desc">Встраивать в видеофайл пререндерные субтитры, если они доступны</string>
     <string name="new_template">Новый шаблон</string>
     <string name="template_label">Заголовок</string>
     <string name="remove_template">Удалить\?</string>
@@ -151,7 +151,7 @@
     <string name="status_downloading">Загрузка</string>
     <string name="status_enqueued">В очереди</string>
     <string name="status_canceled">Отменено</string>
-    <string name="copy_error_report">Сообщить об ошибке</string>
+    <string name="copy_error_report">Копировать отчет</string>
     <string name="status_error">Ошибка</string>
     <string name="copy_link">Скопировать ссылку</string>
     <string name="video_resolution">Разрешение видео</string>
@@ -190,7 +190,7 @@
     <string name="download_with_cellular_desc">Разрешать загрузку медиа, когда подключена мобильная сеть с лимитным трафиком</string>
     <string name="download_disabled_with_cellular">Согласно Вашим настройкам, загрузка через мобильную сеть отключена</string>
     <string name="network">Сеть</string>
-    <string name="rate_limit_desc">Установить лимит максимальной скорости загрузки</string>
+    <string name="rate_limit_desc">Ограничить максимальную скорость загрузки</string>
     <string name="high_contrast">Высококонтрастная тёмная тема</string>
     <string name="invalid_input">Недопустимый ввод</string>
     <string name="lowest_quality">Наименьшее качество</string>
@@ -244,7 +244,7 @@
     <string name="edit_shortcuts_desc">Изменяйте ярлыки, которые могут быть использованы для составления своих команд.</string>
     <string name="video_title_sample_text">Пример названия видео</string>
     <string name="video_creator_sample_text">Пример автора видео</string>
-    <string name="embed_subtitles_mkv_msg">Чтобы встроить субтитры, контейнер видео будет изменен на mkv. Вы можете использовать Проигрыватель VLC или другие совместимые приложения для просмотра видео с встроенными субтитрами.</string>
+    <string name="embed_subtitles_mkv_msg">Чтобы встроить пререндерные субтитры, контейнер видео будет изменен на mkv. Вы можете использовать Проигрыватель VLC или другие совместимые приложения для просмотра видео с пререндерными субтитрами.</string>
     <string name="filesize_mb">%.2f МБ</string>
     <string name="filesize_gb">%.2f ГБ</string>
     <string name="share">Поделиться</string>
@@ -405,4 +405,41 @@
     <string name="download_archive_error">Видео было загружено. Если это не ожидаемое поведение, пожалуйста, проверьте архив загрузки.</string>
     <string name="none">Нет</string>
     <string name="remux_container_mkv">Remux видео контейнер</string>
+    <string name="cookies_in_database">Кол-во файлов куки: %1$d, кол-во их источников: %2$d</string>
+    <string name="remux_container_mkv_desc">Конвертировать видеофайлы в MKV контейнеры для улучшения совместимости</string>
+    <string name="every_day">Каждый день</string>
+    <string name="every_week">Каждую неделю</string>
+    <string name="every_month">Каждый месяц</string>
+    <string name="playlist">Плейлист</string>
+    <string name="preset">Пресет</string>
+    <string name="prefer_placeholder">Предпочитать %1$s</string>
+    <string name="custom_format_selection_desc">Выберите из форматов, субтитров и настройте дальше</string>
+    <string name="all_languages">Все языки</string>
+    <string name="proceed">Продолжить</string>
+    <string name="task_added">Задача добавлена в очередь</string>
+    <plurals name="video_count">
+        <item quantity="one">%d видео</item>
+        <item quantity="few">%d видео</item>
+        <item quantity="many">%d видео</item>
+        <item quantity="other">%d видео</item>
+    </plurals>
+    <plurals name="audio_count">
+        <item quantity="one">%d аудио</item>
+        <item quantity="few">%d аудио</item>
+        <item quantity="many">%d аудио</item>
+        <item quantity="other">%d аудио</item>
+    </plurals>
+    <string name="preset_format_selection_desc">Скачать автоматически с помощью предпочтений формата</string>
+    <string name="edit_preset">Изменить предустановку</string>
+    <string name="best_quality_desc">Скачать лучший доступный формат</string>
+    <string name="you_ll_find_your_downloads_here">Вы найдете свои загрузки здесь</string>
+    <string name="download_hint">Нажмите на кнопку загрузки или поделитесь ссылкой на видео с этим приложением, чтобы начать загрузку</string>
+    <string name="status_downloaded">Загружено</string>
+    <string name="all">Все</string>
+    <string name="select_multiple_link">Выберите из %1$d ссылок</string>
+    <string name="show_navigation_drawer">Показать навигационную панель</string>
+    <string name="resume">Резюме</string>
+    <string name="delete">Удалить</string>
+    <string name="media_info">Информация о медиа</string>
+    <string name="download_queue">Очередь загрузки</string>
 </resources>

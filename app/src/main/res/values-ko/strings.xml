@@ -98,8 +98,8 @@
     <string name="display">디스플레이</string>
     <string name="display_settings">어두운 테마, 동적 색상, 언어</string>
     <string name="cancel">취소</string>
-    <string name="settings_before_download">다운로드 전 구성</string>
-    <string name="settings_before_download_desc">다운로드하기 전에 기본 설정 구성</string>
+    <string name="settings_before_download">다운로드하기 전 설정하기</string>
+    <string name="settings_before_download_desc">다운로드 전에 설정 변경하기</string>
     <string name="settings_before_download_text">이 다운로드 조정</string>
     <string name="error_copied">클립보드에 오류 보고서가 복사됨</string>
     <string name="convert_to">%1$s 로 변환</string>
@@ -203,7 +203,7 @@
     <string name="open_file">파일 열기</string>
     <string name="status_error">오류</string>
     <string name="copy_link">링크 복사</string>
-    <string name="copy_error_report">오류 보고서</string>
+    <string name="copy_error_report">보고서 복사하기</string>
     <string name="video_resolution">비디오 해상도</string>
     <string name="video_file_size">비디오 파일 크기</string>
     <string name="export_to_clipboard">클립보드로 내보내기</string>
@@ -225,7 +225,7 @@
     <string name="no_downloaded_media">다운로드한 미디어 없음</string>
     <string name="beta_features">베타</string>
     <string name="enable_experimental_feature">실험 기능을 사용하시겠습니까\?</string>
-    <string name="clip_video_dialog_msg">이 기능을 사용하는 다운로드는 비디오의 선택된 섹션을 다운로드할때 FFmpeg에 위임됩니다. 이 기능은 아직 실험적이며 자르기가 완전히 정확하지 않습니다. 또한 모든 형식이 이 기능을 지원하는 것은 아니며 다운로드 속도가 느려질 수 있습니다.</string>
+    <string name="clip_video_dialog_msg">이 기능을 사용하는 다운로드는 비디오의 선택된 섹션을 다운로드할때 FFmpeg에게 위임됩니다. 이 기능은 아직 실험적이며 자르기가 완전히 정확하지 않습니다. 또한 모든 형식이 이 기능을 지원하는 것은 아니며 다운로드 속도가 느려질 수 있습니다.</string>
     <string name="clip_video_desc">형식 선택 페이지에서 비디오 클립 만들기</string>
     <string name="filesize_mb">%.2f MB</string>
     <string name="filesize_gb">%.2f GB</string>
@@ -293,7 +293,7 @@
     <string name="rename">이름 바꾸기</string>
     <string name="minute">분</string>
     <string name="clear_all_cookies">모든 쿠키 지우기</string>
-    <string name="sponsor_desc">GitHub에서 후원하여 이 앱을 지원</string>
+    <string name="sponsor_desc">GitHub에서 후원하여 이 앱을 지원해주세요</string>
     <string name="feedback">피드백</string>
     <string name="sponsors">후원자</string>
     <string name="temporary_directory_desc">내부 디렉토리에 임시 파일 저장</string>
@@ -403,4 +403,24 @@
     <string name="redownload">재다운로드</string>
     <string name="remux_container_mkv">비디오 컨테이너 리묵스</string>
     <string name="remux_container_mkv_desc">더 나은 호환성을 위해 비디오를 MKV 컨테이너로 리묵스하기</string>
+    <string name="every_week">매주</string>
+    <string name="every_month">매월</string>
+    <string name="every_day">매일</string>
+    <string name="cookies_in_database">%2$d개의 웹사이트의 총 %1$d개의 쿠키 저장 중</string>
+    <string name="all_languages">모든 언어</string>
+    <string name="playlist">재생목록</string>
+    <string name="proceed">계속하기</string>
+    <string name="preset_format_selection_desc">형식 설정을 사용하여 자동으로 다운로드합니다</string>
+    <string name="edit_preset">프리셋 편집</string>
+    <string name="best_quality_desc">가능한 최고 품질을 다운로드</string>
+    <string name="task_added">대기열에 추가됨</string>
+    <plurals name="video_count">
+        <item quantity="other">영상 %d개</item>
+    </plurals>
+    <plurals name="audio_count">
+        <item quantity="other">오디오 %d개</item>
+    </plurals>
+    <string name="preset">프리셋</string>
+    <string name="custom_format_selection_desc">형식과 자막 등을 설정합니다</string>
+    <string name="prefer_placeholder">%1$s 선호</string>
 </resources>

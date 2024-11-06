@@ -2,6 +2,8 @@ package com.junkfood.seal.ui.page.settings.command
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
@@ -15,7 +17,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +44,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.google.accompanist.flowlayout.FlowRow
 import com.junkfood.seal.R
 import com.junkfood.seal.database.objects.CommandTemplate
 import com.junkfood.seal.database.objects.OptionShortcut
@@ -58,7 +58,6 @@ import com.junkfood.seal.ui.component.ShortcutChip
 import com.junkfood.seal.util.DatabaseUtil
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Preview
 @Composable
 fun CommandTemplateDialog(
@@ -75,11 +74,7 @@ fun CommandTemplateDialog(
     var isError by remember { mutableStateOf(false) }
     AlertDialog(
         icon = { Icon(if (newTemplate) Icons.Outlined.Add else Icons.Outlined.EditNote, null) },
-        title = {
-            Text(
-                stringResource(if (newTemplate) R.string.new_template else R.string.edit)
-            )
-        },
+        title = { Text(stringResource(if (newTemplate) R.string.new_template else R.string.edit)) },
         onDismissRequest = { onDismissRequest() },
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false),
         confirmButton = {
@@ -88,19 +83,21 @@ fun CommandTemplateDialog(
                     isError = true
                 } else {
                     scope.launch {
-                        val id = if (newTemplate) {
-                            DatabaseUtil.insertTemplate(
-                                CommandTemplate(0, templateName, templateText)
-                            ).toInt()
-
-                        } else {
-                            DatabaseUtil.updateTemplate(
-                                commandTemplate.copy(
-                                    name = templateName, template = templateText
+                        val id =
+                            if (newTemplate) {
+                                DatabaseUtil.insertTemplate(
+                                        CommandTemplate(0, templateName, templateText)
+                                    )
+                                    .toInt()
+                            } else {
+                                DatabaseUtil.updateTemplate(
+                                    commandTemplate.copy(
+                                        name = templateName,
+                                        template = templateText,
+                                    )
                                 )
-                            )
-                            commandTemplate.id
-                        }
+                                commandTemplate.id
+                            }
                         confirmationCallback(id)
                         onDismissRequest()
                     }
@@ -108,26 +105,18 @@ fun CommandTemplateDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(stringResource(R.string.dismiss))
-            }
+            TextButton(onClick = onDismissRequest) { Text(stringResource(R.string.dismiss)) }
         },
         text = {
             val focusManager = LocalFocusManager.current
             val softwareKeyboardController = LocalSoftwareKeyboardController.current
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-            ) {
+            Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
                 Text(
                     text = stringResource(R.string.edit_template_desc),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
                 )
                 OutlinedTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     value = templateName,
                     onValueChange = {
                         templateName = it
@@ -136,13 +125,13 @@ fun CommandTemplateDialog(
                     label = { Text(stringResource(R.string.template_label)) },
                     maxLines = 1,
                     isError = isError,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 )
-                ProvideTextStyle(value = LocalTextStyle.current.merge(fontFamily = FontFamily.Monospace)) {
+                ProvideTextStyle(
+                    value = LocalTextStyle.current.merge(fontFamily = FontFamily.Monospace)
+                ) {
                     OutlinedTextField(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
                         value = templateText,
                         onValueChange = { templateText = it },
                         trailingIcon = {
@@ -157,10 +146,11 @@ fun CommandTemplateDialog(
                 }
                 LinkButton()
             }
-        })
+        },
+    )
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun OptionChipsDialog(onDismissRequest: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
@@ -178,31 +168,27 @@ fun OptionChipsDialog(onDismissRequest: () -> Unit = {}) {
     SealDialog(
         onDismissRequest = onDismissRequest,
         title = { Text(text = stringResource(id = R.string.edit_shortcuts)) },
-        icon = { Icon(Icons.Outlined.Edit, null) }, text = {
+        icon = { Icon(Icons.Outlined.Edit, null) },
+        text = {
             Column {
                 Text(
                     text = stringResource(R.string.edit_shortcuts_desc),
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .padding(bottom = 12.dp)
-                        .padding(horizontal = 24.dp)
+                    modifier = Modifier.padding(bottom = 12.dp).padding(horizontal = 24.dp),
                 )
                 Column(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .requiredHeight(400.dp)
-                        .horizontalScroll(rememberScrollState())
-                        .verticalScroll(rememberScrollState())
+                    modifier =
+                        Modifier.padding(horizontal = 16.dp)
+                            .requiredHeight(400.dp)
+                            .horizontalScroll(rememberScrollState())
+                            .verticalScroll(rememberScrollState())
                 ) {
                     FlowRow(modifier = Modifier.width(400.dp)) {
                         shortcuts.forEach { item ->
                             ShortcutChip(
                                 text = item.option,
-                                onRemove = {
-                                    scope.launch {
-                                        DatabaseUtil.deleteShortcut(item)
-                                    }
-                                })
+                                onRemove = { scope.launch { DatabaseUtil.deleteShortcut(item) } },
+                            )
                         }
                     }
                 }
@@ -210,28 +196,30 @@ fun OptionChipsDialog(onDismissRequest: () -> Unit = {}) {
                 val softwareKeyboardController = LocalSoftwareKeyboardController.current
 
                 SealTextField(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                     value = text,
                     onValueChange = { text = it },
                     trailingIcon = {
                         AddButton(onClick = { addShortCuts() }, enabled = text.isNotEmpty())
                     },
-                    keyboardActions = KeyboardActions(onDone = {
-                        addShortCuts()
-                        softwareKeyboardController?.hide()
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }),
+                    keyboardActions =
+                        KeyboardActions(
+                            onDone = {
+                                addShortCuts()
+                                softwareKeyboardController?.hide()
+                                focusManager.moveFocus(FocusDirection.Down)
+                            }
+                        ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     maxLines = 2,
-                    contentDescription = stringResource(id = R.string.shortcuts)
+                    contentDescription = stringResource(id = R.string.shortcuts),
                 )
             }
-
-        }, confirmButton = {
+        },
+        confirmButton = {
             TextButton(onClick = onDismissRequest) {
                 Text(text = stringResource(id = androidx.appcompat.R.string.abc_action_mode_done))
             }
-        })
+        },
+    )
 }

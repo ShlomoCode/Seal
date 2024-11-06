@@ -18,7 +18,7 @@
     <string name="settings">Configurações</string>
     <string name="yt_dlp_update_fail">A última versão do yt-dlp não pode ser instalada. Por favor verifique sua conexão com a internet.</string>
     <string name="download_success_msg">Download concluído</string>
-    <string name="paste_msg">Colar URL da área de transferência</string>
+    <string name="paste_msg">Colar URL</string>
     <string name="ytdlp_version">Versão do Yt-dlp</string>
     <string name="delete_info">Remover\?</string>
     <string name="delete_info_msg">Remover “%1$s” do seu histórico de downloads definitivamente\?</string>
@@ -110,7 +110,7 @@
     <string name="concurrent_download_num">%d fragmento(s) seriam usados para baixar vídeo nativo DASH/HLS simultaneamente.</string>
     <string name="permission_issue">Problema de permissão de armazenamento</string>
     <string name="translate">Traduzir</string>
-    <string name="battery_configuration_desc">Ignorar a \"Otimização da Bateria\" para este aplicativo fazer download em segundo plano</string>
+    <string name="battery_configuration_desc">Ignorar \"Otimização da Bateria\" para este aplicativo fazer download em segundo plano</string>
     <string name="unknown_error">Erro desconhecido</string>
     <string name="translate_desc">Ajude a traduzir este aplicativo em seu idioma usando Weblate</string>
     <string name="back">Voltar</string>
@@ -136,7 +136,7 @@
     <string name="status_downloading">Fazendo o download</string>
     <string name="status_error">Erro</string>
     <string name="copy_link">Copiar link</string>
-    <string name="copy_error_report">Relatório de erros</string>
+    <string name="copy_error_report">Copiar informação</string>
     <string name="status_fetching_video_info">Buscando informações</string>
     <string name="status_enqueued">Enfileirado</string>
     <string name="status_canceled">Cancelado</string>
@@ -169,7 +169,7 @@
     <string name="app_up_to_date">Você já possui a atualização mais recente</string>
     <string name="app_update_failed">Falha ao atualizar para a versão mais recente</string>
     <string name="update">Atualizar</string>
-    <string name="aria2_desc">Usar aria2c como ferramenta de download padrão</string>
+    <string name="aria2_desc">Usar aria2c como provedor de download padrão</string>
     <string name="cookies_desc">Usar cookies formatados do Netscape para download</string>
     <string name="clear_temp_files">Remover arquivos temporários</string>
     <string name="clear_temp_files_desc">Excluir todos os arquivos temporários do diretório temporário</string>
@@ -183,7 +183,7 @@
     <string name="sponsorblock_desc">Remover ou marcar segmentos em vídeos com a API SponsorBlock</string>
     <string name="high_contrast">Tema escuro de alto contraste</string>
     <string name="invalid_input">Entrada inválida</string>
-    <string name="lowest_quality">Qualidade mais baixa</string>
+    <string name="lowest_quality">Menor qualidade</string>
     <string name="private_mode">Anônimo</string>
     <string name="private_mode_desc">Faça o download sem adicionar no histórico</string>
     <string name="dynamic_color">Cor dinâmica</string>
@@ -191,7 +191,7 @@
     <string name="file_unavailable">Esse arquivo não está mais disponível</string>
     <string name="network">Rede</string>
     <string name="rate_limit">Limite de conexão</string>
-    <string name="rate_limit_desc">Limitar a taxa máxima de downloads</string>
+    <string name="rate_limit_desc">Limitar velocidade máxima de download</string>
     <string name="max_rate">Taxa máxima</string>
     <string name="unavailable">Indisponível</string>
     <string name="format_settings_desc">Formato, qualidade, legendas</string>
@@ -199,7 +199,7 @@
     <string name="disable_preview">Desativar pré-visualização</string>
     <string name="disable_preview_desc">Desativar pré-visualização em downloads</string>
     <string name="privacy">Privacidade</string>
-    <string name="network_settings_desc">Limite de conexão, cookies, proxy</string>
+    <string name="network_settings_desc">Limite de conexão, provedor de download, cookies</string>
     <string name="private_directory">Diretório privado</string>
     <string name="private_directory_desc">Armazenar downloads em um diretório oculto</string>
     <string name="crop_artwork_desc">Recortar miniatura em um quadrado</string>
@@ -316,8 +316,8 @@
     <string name="folder_picker">Selecionar pasta</string>
     <string name="custom_command_directory_desc">Especifique o diretório de saída ao usar comandos personalizados</string>
     <string name="prefer_quality_desc">Preferir formatos AV1, VP9 ou H.265 para assistir em aplicativos compatíveis</string>
-    <string name="legacy">Antiga</string>
-    <string name="quality">Qualidade</string>
+    <string name="legacy">Legado</string>
+    <string name="quality">Melhor formato</string>
     <string name="enable_notifications">Ativar notificações\?</string>
     <string name="enable_notifications_desc">O aplicativo precisa da sua permissão para postar notificações sobre o status e o progresso do download.</string>
     <string name="prefer_compatibility_desc">Preferir formatos MP4(H.264) para compartilhar com outros aplicativos</string>
@@ -406,4 +406,34 @@
     <string name="remux_container_mkv">Contêiner de vídeo Remux</string>
     <string name="remux_container_mkv_desc">Remuxar vídeos em contêiner MKV para melhor compatibilidade</string>
     <string name="cookies_in_database">%1$d cookies de %2$d sites no total</string>
+    <string name="every_week">Semanalmente</string>
+    <string name="every_month">Mensalmente</string>
+    <string name="every_day">Diariamente</string>
+    <string name="all_languages">Todos os idiomas</string>
+    <string name="proceed">Continuar</string>
+    <string name="playlist">Playlist</string>
+    <string name="edit_preset">Editar predefinição</string>
+    <string name="best_quality_desc">Faça o download do melhor formato disponível</string>
+    <string name="preset">Predefinição</string>
+    <string name="prefer_placeholder">Preferir %1$s</string>
+    <string name="custom_format_selection_desc">Escolha entre formatos, legendas e personalize ainda mais</string>
+    <string name="preset_format_selection_desc">Faça o download automaticamente usando suas preferências de formato</string>
+    <plurals name="video_count">
+        <item quantity="one">%d vídeo</item>
+        <item quantity="many">%d vídeos</item>
+        <item quantity="other">%d vídeos</item>
+    </plurals>
+    <plurals name="audio_count">
+        <item quantity="one">%d áudio</item>
+        <item quantity="many">%d áudios</item>
+        <item quantity="other">%d áudios</item>
+    </plurals>
+    <string name="task_added">Tarefa adicionada à fila</string>
+    <string name="you_ll_find_your_downloads_here">Você encontrará seus downloads aqui</string>
+    <string name="download_hint">Toque no botão de download ou compartilhe um link de vídeo com este aplicativo para iniciar o download</string>
+    <string name="status_downloaded">Download concluído</string>
+    <string name="all">Todos</string>
+    <string name="download_queue">Fila de downloads</string>
+    <string name="select_multiple_link">Selecionar entre %1$d links</string>
+    <string name="show_navigation_drawer">Mostrar menu de navegação</string>
 </resources>

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -41,11 +42,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.os.LocaleListCompat
 import com.junkfood.seal.R
 import com.junkfood.seal.ui.component.BackButton
-import com.junkfood.seal.ui.component.HorizontalDivider
-import com.junkfood.seal.ui.component.LargeTopAppBar
 import com.junkfood.seal.ui.component.PreferenceSingleChoiceItem
+import com.junkfood.seal.ui.component.PreferenceSubtitle
 import com.junkfood.seal.ui.component.PreferencesHintCard
 import com.junkfood.seal.ui.page.settings.about.weblate
 import com.junkfood.seal.ui.theme.SealTheme
@@ -55,32 +56,71 @@ import com.junkfood.seal.util.setLanguage
 import com.junkfood.seal.util.toDisplayName
 import java.util.Locale
 
-
 @Composable
 fun LanguagePage(onNavigateBack: () -> Unit = {}) {
     val selectedLocale by remember { mutableStateOf(Locale.getDefault()) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        Intent(Settings.ACTION_APP_LOCALE_SETTINGS).apply {
-            val uri = Uri.fromParts("package", context.packageName, null)
-            data = uri
+    val intent =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Intent(Settings.ACTION_APP_LOCALE_SETTINGS).apply {
+                val uri = Uri.fromParts("package", context.packageName, null)
+                data = uri
+            }
+        } else {
+            Intent()
         }
-    } else {
-        Intent()
+
+    val preferredLocales = remember {
+        val defaultLocaleListCompat = LocaleListCompat.getDefault()
+        val mLocaleSet = mutableSetOf<Locale>()
+
+        for (index in 0..defaultLocaleListCompat.size()) {
+            val locale = defaultLocaleListCompat[index]
+            if (locale != null) {
+                mLocaleSet.add(locale)
+            }
+        }
+
+        return@remember mLocaleSet
     }
+
+    val supportedLocales = LocaleLanguageCodeMap.keys
+
+    val suggestedLocales =
+        remember(preferredLocales) {
+            val localeSet = mutableSetOf<Locale>()
+
+            preferredLocales.forEach { desired ->
+                val matchedLocale =
+                    supportedLocales.firstOrNull { supported ->
+                        LocaleListCompat.matchesLanguageAndScript(
+                            /* supported = */ desired,
+                            /* desired = */ supported,
+                        )
+                    }
+                if (matchedLocale != null) {
+                    localeSet.add(matchedLocale)
+                }
+            }
+
+            return@remember localeSet
+        }
+
+    val otherLocales = supportedLocales - suggestedLocales
 
     val isSystemLocaleSettingsAvailable =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.packageManager.queryIntentActivities(
-                intent, PackageManager.MATCH_ALL
-            ).isNotEmpty()
+            context.packageManager
+                .queryIntentActivities(intent, PackageManager.MATCH_ALL)
+                .isNotEmpty()
         } else {
             false
         }
     LanguagePageImpl(
         onNavigateBack = onNavigateBack,
-        localeSet = LocaleLanguageCodeMap.keys,
+        suggestedLocales = suggestedLocales,
+        otherLocales = otherLocales,
         isSystemLocaleSettingsAvailable = isSystemLocaleSettingsAvailable,
         onNavigateToSystemLocaleSettings = {
             if (isSystemLocaleSettingsAvailable) {
@@ -98,123 +138,136 @@ fun LanguagePage(onNavigateBack: () -> Unit = {}) {
 @Composable
 private fun LanguagePageImpl(
     onNavigateBack: () -> Unit = {},
-    localeSet: Set<Locale>,
+    suggestedLocales: Set<Locale>,
+    otherLocales: Set<Locale>,
     isSystemLocaleSettingsAvailable: Boolean = false,
     onNavigateToSystemLocaleSettings: () -> Unit,
     selectedLocale: Locale,
-    onLanguageSelected: (Locale?) -> Unit = {}
+    onLanguageSelected: (Locale?) -> Unit = {},
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState(),
-        canScroll = { true }
-    )
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+            rememberTopAppBarState(),
+            canScroll = { true },
+        )
     val uriHandler = LocalUriHandler.current
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
                 title = {
-                    Text(
-                        modifier = Modifier,
-                        text = stringResource(id = R.string.language),
-                    )
-                }, navigationIcon = {
-                    BackButton {
-                        onNavigateBack()
-                    }
-                }, scrollBehavior = scrollBehavior
+                    Text(modifier = Modifier, text = stringResource(id = R.string.language))
+                },
+                navigationIcon = { BackButton { onNavigateBack() } },
+                scrollBehavior = scrollBehavior,
             )
-        }, content = {
-            LazyColumn(
-                modifier = Modifier
-                    .padding(it)
-            ) {
+        },
+        content = {
+            LazyColumn(modifier = Modifier, contentPadding = it) {
                 item {
                     PreferencesHintCard(
                         title = stringResource(R.string.translate),
                         description = stringResource(R.string.translate_desc),
                         icon = Icons.Outlined.Translate,
-                    ) { uriHandler.openUri(weblate) }
+                    ) {
+                        uriHandler.openUri(weblate)
+                    }
                 }
 
+                if (suggestedLocales.isNotEmpty()) {
 
-                item {
-                    PreferenceSingleChoiceItem(
-                        text = stringResource(id = R.string.follow_system),
-                        selected = !localeSet.contains(selectedLocale),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 18.dp)
-                    ) { onLanguageSelected(null) }
+                    item { PreferenceSubtitle(text = stringResource(id = R.string.suggested)) }
+
+                    if (!suggestedLocales.contains(Locale.getDefault())) {
+                        item {
+                            PreferenceSingleChoiceItem(
+                                text = stringResource(id = R.string.follow_system),
+                                selected = !suggestedLocales.contains(selectedLocale),
+                            ) {
+                                onLanguageSelected(null)
+                            }
+                        }
+                    }
+
+                    for (locale in suggestedLocales) {
+                        item {
+                            PreferenceSingleChoiceItem(
+                                text = locale.toDisplayName(),
+                                selected = selectedLocale == locale,
+                            ) {
+                                onLanguageSelected(locale)
+                            }
+                        }
+                    }
                 }
 
-                for (locale in localeSet) {
+                item { PreferenceSubtitle(text = stringResource(id = R.string.all_languages)) }
+
+                for (locale in otherLocales) {
                     item {
                         PreferenceSingleChoiceItem(
                             text = locale.toDisplayName(),
                             selected = selectedLocale == locale,
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 18.dp)
-                        ) { onLanguageSelected(locale) }
+                        ) {
+                            onLanguageSelected(locale)
+                        }
                     }
                 }
 
-
                 if (isSystemLocaleSettingsAvailable) {
                     item {
-                        HorizontalDivider()
+                        androidx.compose.material3.HorizontalDivider()
                         Surface(
-                            modifier = Modifier.clickable(
-                                onClick = onNavigateToSystemLocaleSettings
-                            )
+                            modifier =
+                                Modifier.clickable(onClick = onNavigateToSystemLocaleSettings)
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(PaddingValues(horizontal = 12.dp, vertical = 18.dp)),
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .padding(
+                                            PaddingValues(horizontal = 8.dp, vertical = 16.dp)
+                                        ),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Column(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(start = 10.dp)
-                                ) {
+                                Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
                                     Text(
                                         text = stringResource(R.string.system_settings),
                                         maxLines = 1,
-                                        style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
+                                        style =
+                                            MaterialTheme.typography.titleLarge.copy(
+                                                fontSize = 20.sp
+                                            ),
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        overflow = TextOverflow.Ellipsis
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 }
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Outlined.ArrowForwardIos,
                                     contentDescription = null,
-                                    modifier = Modifier
-                                        .padding(end = 16.dp)
-                                        .size(18.dp)
+                                    modifier = Modifier.padding(end = 16.dp).size(18.dp),
                                 )
                             }
                         }
                     }
                 }
             }
-        })
+        },
+    )
 }
 
 @Preview
 @Composable
 private fun LanguagePagePreview() {
-    var language by remember {
-        mutableStateOf(Locale.JAPANESE)
-    }
-    val map = setOf(Locale.forLanguageTag("zh"))
+    var language by remember { mutableStateOf(Locale.JAPANESE) }
+    val map = setOf(Locale.forLanguageTag("en-US"))
     SealTheme {
         LanguagePageImpl(
-            localeSet = map,
+            suggestedLocales = map,
+            otherLocales = map + Locale.forLanguageTag("ja-JP"),
             isSystemLocaleSettingsAvailable = true,
             onNavigateToSystemLocaleSettings = { /*TODO*/ },
-            selectedLocale = language
+            selectedLocale = language,
         ) {
             language = it
         }

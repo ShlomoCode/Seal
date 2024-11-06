@@ -58,7 +58,7 @@
     <string name="remove">Usuń</string>
     <string name="audio">Audio</string>
     <string name="link_copied">Link skopiowany do schowka</string>
-    <string name="delete_file">Usuń plik z pamięci telefonu</string>
+    <string name="delete_file">Usuń plik</string>
     <string name="readme_desc">Sprawdź repozytorium Github i README</string>
     <string name="release">Najnowsze wydanie</string>
     <string name="about_page">Wersja, informacja zwrotna, automatyczna aktualizacja</string>
@@ -176,7 +176,7 @@
     <string name="status_fetching_video_info">Pobieranie informacji</string>
     <string name="status_downloading">Pobieranie</string>
     <string name="open_file">Otwórz plik</string>
-    <string name="copy_error_report">Raport błędu</string>
+    <string name="copy_error_report">Kopia raportu</string>
     <string name="sponsorblock_categories_desc">Określ kategorie SponsorBlock do usunięcia lub zaznaczenia w pliku wideo</string>
     <string name="multiselect_mode">Tryb wielokrotnego wyboru</string>
     <string name="private_mode">Tryb prywatny</string>
@@ -205,7 +205,7 @@
     <string name="new_template">Nowy szablon</string>
     <string name="format_selection">Wybór formatu</string>
     <string name="aria2_desc">Użyj aria2c jako zewnętrzny program do pobierania</string>
-    <string name="embed_subtitles_desc">Osadź dostarczone napisy w filmach, jeśli są dostępne</string>
+    <string name="embed_subtitles_desc">Dołącz napisy do filmów, jeśli są dostępne</string>
     <string name="status_canceled">Przerwane</string>
     <string name="disable_preview_desc">Brak wyświetlania miniatur podczas pobierania</string>
     <string name="unavailable">Niedostępne</string>
@@ -215,7 +215,7 @@
     <string name="info_copied">Informacja skopiowana do schowka</string>
     <string name="network_settings_desc">Limit szybkości, program do pobierania, ciasteczka</string>
     <string name="use_cookies">Użyj ciasteczek</string>
-    <string name="remove_cookie_profile_desc">Usuń ciasteczka dla \"%1$s\"?</string>
+    <string name="remove_cookie_profile_desc">Usunąć ten wpis dla \"%1$s\"? Należy pamiętać, że pliki cookie zapisane dla tej witryny nie zostaną usunięte.</string>
     <string name="generate_new_cookies">Wygeneruj nowe ciasteczka</string>
     <string name="disable_preview">Wyłącz podgląd</string>
     <string name="private_directory_desc">Przechowuj pobrane pliki w ukrytym katalogu</string>
@@ -294,7 +294,7 @@
 \n
 \nW tych wersjach wystąpią pewne niestabilności, więc nie wahaj się przekazać nam opinii, jeśli napotkasz jakiekolwiek problemy, które pomogą nam ulepszyć aplikację na przyszłość.</string>
     <string name="logs">Dziennik</string>
-    <string name="embed_subtitles_mkv_msg">Aby osadzić napisy, filmy zostaną zremiksowane do kontenera mkv. Do oglądania filmów z osadzonymi napisami można użyć VLC Media Player lub innych kompatybilnych aplikacji.</string>
+    <string name="embed_subtitles_mkv_msg">Aby osadzić miękkie napisy, wideo będzie zremiksowane do kontenera MKV. Możesz użyć VLC Media Player lub inną zgodną aplikację do oglądania wideo z miękkimi napisami.</string>
     <string name="update_channel">Zaktualizuj kanał</string>
     <string name="folder_picker">Wybieranie folderu</string>
     <string name="split_video">Podziel wideo</string>
@@ -373,4 +373,51 @@
     <string name="system_settings">Ustawienia systemowe</string>
     <string name="force_ipv4">Wymuś IPv4</string>
     <string name="force_ipv4_desc">Nawiązuj wszystkie połączenia przez IPv4</string>
+    <string name="remux_container_mkv">Remuksowanie kontenera wideo</string>
+    <string name="remux_container_mkv_desc">Remuksuj wideo do kontenera MKV dla lepszej kompatybilności</string>
+    <string name="download_archive_error">Wideo zostało pobrane. Jeśli nie jest to oczekiwane zachowanie, sprawdź archiwum pobrań.</string>
+    <string name="import_from">Importuj z</string>
+    <string name="export_download_history">Eksportować historię pobrań?</string>
+    <string name="cookies_in_database">Łącznie %1$d plików cookie z %2$d witryn internetowych</string>
+    <string name="auto_translated_subtitles">Automatycznie przetłumaczone napisy</string>
+    <string name="subtitle_language_desc">Języki napisów do pobrania w automatycznym wyborze formatu, oddzielone przecinkami.</string>
+    <string name="remember_for_next_download">Pamiętaj do następnego pobrania</string>
+    <string name="use_previous_selection">Użyj poprzedniego wyboru</string>
+    <string name="none">Żaden</string>
+    <string name="search_in_subtitles">Szukaj w napisach</string>
+    <string name="no_thanks">Nie, dziękuję</string>
+    <string name="update_subtitle_languages">Zaktualizować języki napisów?</string>
+    <string name="export_backup">Eksportuj</string>
+    <string name="import_backup">Importuj</string>
+    <string name="full_backup">Pełna kopia zapasowa</string>
+    <string name="backup_type">Typ kopii zapasowej</string>
+    <string name="export_to">Eksportuj do</string>
+    <string name="file">Plik</string>
+    <string name="clipboard">Schowek</string>
+    <string name="import_download_history">Importować historię pobrań?</string>
+    <string name="download_history">Historia pobrań</string>
+    <string name="look_and_feel">Wygląd i styl</string>
+    <string name="auto_translated_subtitles_msg">Automatycznie przetłumaczone napisy dla wszystkich języków będą dostępne w pobranych. Napisy te mogą być niedokładne i trudne do zrozumienia.</string>
+    <string name="interface_and_interaction">Interfejs i interakcja</string>
+    <string name="update_language_msg">Następujące języki zostaną dodane do preferowanych w przyszłych pobraniach:</string>
+    <string name="import_download_history_msg">Pobrane pliki nie zostaną zaimportowane. Będziesz musiał pobrać je z powrotem ręcznie</string>
+    <string name="export_download_history_msg">Eksportowanie %1$s z historii pobrań. Kopia zapasowa pobranych plików i preferencji nie zostanie utworzona.</string>
+    <string name="download_history_imported">Zaimportowano %1$s do historii pobrań</string>
+    <string name="every_day">Codziennie</string>
+    <string name="every_week">Co tydzień</string>
+    <string name="every_month">Co miesiąc</string>
+    <string name="redownload">Pobierz ponownie</string>
+    <string name="search_in_downloads">Szukaj w pobranych</string>
+    <string name="search">Szukaj</string>
+    <string name="all_languages">Wszystkie języki</string>
+    <string name="playlist">Playlista</string>
+    <string name="proceed">Kontynuuj</string>
+    <string name="preset">Ustawienie wstępne</string>
+    <string name="prefer_placeholder">Preferuj %1$s</string>
+    <string name="preset_format_selection_desc">Pobierz automatyczne przy użyciu twoich preferencji</string>
+    <string name="edit_preset">Edytuj ustawienie wstępne</string>
+    <string name="best_quality_desc">Pobierz używając najlepszy dostępny format</string>
+    <string name="task_added">Zadanie dodane do kolejki</string>
+    <string name="reset">Reset</string>
+    <string name="custom_format_selection_desc">Wybieraj spośród formatów, napisów i dostosowuj dalej</string>
 </resources>

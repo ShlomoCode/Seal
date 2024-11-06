@@ -85,7 +85,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
@@ -94,6 +93,7 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.junkfood.seal.App
 import com.junkfood.seal.Downloader
 import com.junkfood.seal.R
+import com.junkfood.seal.download.DownloaderV2
 import com.junkfood.seal.ui.common.HapticFeedback.longPressHapticFeedback
 import com.junkfood.seal.ui.common.HapticFeedback.slightHapticFeedback
 import com.junkfood.seal.ui.common.LocalWindowWidthState
@@ -101,6 +101,11 @@ import com.junkfood.seal.ui.component.ClearButton
 import com.junkfood.seal.ui.component.NavigationBarSpacer
 import com.junkfood.seal.ui.component.OutlinedButtonWithIcon
 import com.junkfood.seal.ui.component.VideoCard
+import com.junkfood.seal.ui.page.downloadv2.Config
+import com.junkfood.seal.ui.page.downloadv2.DownloadDialog
+import com.junkfood.seal.ui.page.downloadv2.DownloadDialogViewModel
+import com.junkfood.seal.ui.page.downloadv2.DownloadDialogViewModel.Action
+import com.junkfood.seal.ui.page.downloadv2.FormatPage
 import com.junkfood.seal.ui.theme.PreviewThemeLight
 import com.junkfood.seal.ui.theme.SealTheme
 import com.junkfood.seal.util.CELLULAR_DOWNLOAD
@@ -108,20 +113,18 @@ import com.junkfood.seal.util.CONFIGURE
 import com.junkfood.seal.util.CUSTOM_COMMAND
 import com.junkfood.seal.util.DEBUG
 import com.junkfood.seal.util.DISABLE_PREVIEW
+import com.junkfood.seal.util.DownloadUtil
 import com.junkfood.seal.util.NOTIFICATION
 import com.junkfood.seal.util.PreferenceUtil
 import com.junkfood.seal.util.PreferenceUtil.getBoolean
 import com.junkfood.seal.util.PreferenceUtil.updateBoolean
 import com.junkfood.seal.util.ToastUtil
 import com.junkfood.seal.util.matchUrlFromClipboard
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
-
-@OptIn(
-    ExperimentalPermissionsApi::class,
-    ExperimentalMaterial3Api::class,
-)
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadPage(
     navigateToSettings: () -> Unit = {},
@@ -130,27 +133,31 @@ fun DownloadPage(
     navigateToFormatPage: () -> Unit = {},
     onNavigateToTaskList: () -> Unit = {},
     onNavigateToCookieGeneratorPage: (String) -> Unit = {},
-    downloadViewModel: DownloadViewModel = hiltViewModel(),
+    downloader: DownloaderV2 = koinInject(),
+    homePageViewModel: HomePageViewModel = koinViewModel(),
+    dialogViewModel: DownloadDialogViewModel = koinViewModel(),
 ) {
 
     val scope = rememberCoroutineScope()
     val downloaderState by Downloader.downloaderState.collectAsStateWithLifecycle()
     val taskState by Downloader.taskState.collectAsStateWithLifecycle()
-    val viewState by downloadViewModel.viewStateFlow.collectAsStateWithLifecycle()
+    val viewState by homePageViewModel.viewStateFlow.collectAsStateWithLifecycle()
     val playlistInfo by Downloader.playlistResult.collectAsStateWithLifecycle()
-    val videoInfo by downloadViewModel.videoInfoFlow.collectAsStateWithLifecycle()
+    val videoInfo by homePageViewModel.videoInfoFlow.collectAsStateWithLifecycle()
     val errorState by Downloader.errorState.collectAsStateWithLifecycle()
     val processCount by Downloader.processCount.collectAsStateWithLifecycle()
 
     var showNotificationDialog by remember { mutableStateOf(false) }
-    val notificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS) { isGranted: Boolean ->
-            showNotificationDialog = false
-            if (!isGranted) {
-                ToastUtil.makeToast(R.string.permission_denied)
+    val notificationPermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS) {
+                isGranted: Boolean ->
+                showNotificationDialog = false
+                if (!isGranted) {
+                    ToastUtil.makeToast(R.string.permission_denied)
+                }
             }
-        }
-    } else null
+        } else null
 
     val clipboardManager = LocalClipboardManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -163,19 +170,20 @@ fun DownloadPage(
         if (!PreferenceUtil.isNetworkAvailableForDownload()) {
             showMeteredNetworkDialog = true
         } else {
-            downloadViewModel.startDownloadVideo()
+            dialogViewModel.postAction(Action.ShowSheet(listOf(viewState.url)))
+            //            downloadViewModel.startDownloadVideo()
         }
     }
 
-    val storagePermission = rememberPermissionState(
-        permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
-    ) { b: Boolean ->
-        if (b) {
-            checkNetworkOrDownload()
-        } else {
-            ToastUtil.makeToast(R.string.permission_denied)
+    val storagePermission =
+        rememberPermissionState(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE) {
+            b: Boolean ->
+            if (b) {
+                checkNetworkOrDownload()
+            } else {
+                ToastUtil.makeToast(R.string.permission_denied)
+            }
         }
-    }
 
     val checkPermissionOrDownload = {
         if (Build.VERSION.SDK_INT > 29 || storagePermission.status == PermissionStatus.Granted) {
@@ -184,7 +192,6 @@ fun DownloadPage(
             storagePermission.launchPermissionRequest()
         }
     }
-
 
     val downloadCallback: () -> Unit = {
         view.slightHapticFeedback()
@@ -200,67 +207,60 @@ fun DownloadPage(
     }
 
     if (showNotificationDialog) {
-        NotificationPermissionDialog(onDismissRequest = {
-            showNotificationDialog = false
-            NOTIFICATION.updateBoolean(false)
-        }, onPermissionGranted = {
-            notificationPermission?.launchPermissionRequest()
-        })
+        NotificationPermissionDialog(
+            onDismissRequest = {
+                showNotificationDialog = false
+                NOTIFICATION.updateBoolean(false)
+            },
+            onPermissionGranted = { notificationPermission?.launchPermissionRequest() },
+        )
     }
 
     if (showMeteredNetworkDialog) {
         MeteredNetworkDialog(
             onDismissRequest = { showMeteredNetworkDialog = false },
             onAllowOnceConfirm = {
-                downloadViewModel.startDownloadVideo()
+                homePageViewModel.startDownloadVideo()
                 showMeteredNetworkDialog = false
             },
             onAllowAlwaysConfirm = {
-                downloadViewModel.startDownloadVideo()
+                homePageViewModel.startDownloadVideo()
                 CELLULAR_DOWNLOAD.updateBoolean(true)
                 showMeteredNetworkDialog = false
-            })
+            },
+        )
     }
 
-
     DisposableEffect(viewState.showPlaylistSelectionDialog) {
-        if (!playlistInfo.entries.isNullOrEmpty() && viewState.showPlaylistSelectionDialog) navigateToPlaylistPage()
-        onDispose { downloadViewModel.hidePlaylistDialog() }
+        if (!playlistInfo.entries.isNullOrEmpty() && viewState.showPlaylistSelectionDialog)
+            navigateToPlaylistPage()
+        onDispose { homePageViewModel.hidePlaylistDialog() }
     }
 
     DisposableEffect(viewState.showFormatSelectionPage) {
         if (viewState.showFormatSelectionPage) {
             if (!videoInfo.formats.isNullOrEmpty()) navigateToFormatPage()
         }
-        onDispose { downloadViewModel.hideFormatPage() }
+        onDispose { homePageViewModel.hideFormatPage() }
     }
-    var showOutput by remember {
-        mutableStateOf(DEBUG.getBoolean())
-    }
+    var showOutput by remember { mutableStateOf(DEBUG.getBoolean()) }
     LaunchedEffect(downloaderState) {
-        showOutput = PreferenceUtil.getValue(DEBUG) && downloaderState !is Downloader.State.Idle
+        showOutput = DEBUG.getBoolean() && downloaderState !is Downloader.State.Idle
     }
     if (viewState.isUrlSharingTriggered) {
-        downloadViewModel.onShareIntentConsumed()
+        homePageViewModel.onShareIntentConsumed()
         downloadCallback()
     }
 
-    val showVideoCard by remember(downloaderState) {
-        mutableStateOf(
-            !PreferenceUtil.getValue(DISABLE_PREVIEW)
-        )
-    }
+    val showVideoCard by remember(downloaderState) { mutableStateOf(!DISABLE_PREVIEW.getBoolean()) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
-        DownloadPageImpl(downloaderState = downloaderState,
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        DownloadPageImpl(
+            downloaderState = downloaderState,
             taskState = taskState,
             viewState = viewState,
             errorState = errorState,
-            downloadCallback = downloadCallback,
+            downloadCallback = { dialogViewModel.postAction(Action.ShowSheet()) },
             navigateToSettings = navigateToSettings,
             navigateToDownloads = navigateToDownloads,
             onNavigateToTaskList = onNavigateToTaskList,
@@ -270,38 +270,78 @@ fun DownloadPage(
             showDownloadProgress = taskState.taskId.isNotEmpty(),
             pasteCallback = {
                 matchUrlFromClipboard(
-                    string = clipboardManager.getText().toString(),
-                    isMatchingMultiLink = CUSTOM_COMMAND.getBoolean()
-                )
-                    .let { downloadViewModel.updateUrl(it) }
+                        string = clipboardManager.getText().toString(),
+                        isMatchingMultiLink = CUSTOM_COMMAND.getBoolean(),
+                    )
+                    .let { homePageViewModel.updateUrl(it) }
             },
-            cancelCallback = {
-                Downloader.cancelDownload()
-            },
+            cancelCallback = { Downloader.cancelDownload() },
             onVideoCardClicked = { Downloader.openDownloadResult() },
-            onUrlChanged = { url -> downloadViewModel.updateUrl(url) }) {}
+            onUrlChanged = { url -> homePageViewModel.updateUrl(url) },
+        ) {
+            Column {
+                downloader.getTaskStateMap().forEach { (task, state) ->
+                    Text(state.viewState.toString(), maxLines = 2)
+                    Text(state.toString())
+                    Spacer(Modifier.height(12.dp))
+                }
+            }
+        }
 
+        var preferences by remember {
+            mutableStateOf(DownloadUtil.DownloadPreferences.createFromPreferences())
+        }
+        val sheetValue = dialogViewModel.sheetValueFlow.collectAsStateWithLifecycle().value
+        val state = dialogViewModel.sheetStateFlow.collectAsStateWithLifecycle().value
 
-        DownloadSettingDialog(useDialog = useDialog,
+        val selectionState = dialogViewModel.selectionStateFlow.collectAsStateWithLifecycle().value
+
+        var showDialog by remember { mutableStateOf(false) }
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+        LaunchedEffect(sheetValue) {
+            if (sheetValue == DownloadDialogViewModel.SheetValue.Expanded) {
+                showDialog = true
+            } else {
+                launch { sheetState.hide() }.invokeOnCompletion { showDialog = false }
+            }
+        }
+
+        if (showDialog) {
+
+            DownloadDialog(
+                state = state,
+                sheetState = sheetState,
+                config = Config(),
+                preferences = preferences,
+                onPreferencesUpdate = { preferences = it },
+                onActionPost = { dialogViewModel.postAction(it) },
+            )
+        }
+        when (selectionState) {
+            is DownloadDialogViewModel.SelectionState.FormatSelection ->
+                FormatPage(
+                    state = selectionState,
+                    onDismissRequest = { dialogViewModel.postAction(Action.Reset) },
+                )
+            else -> {}
+        }
+        DownloadSettingDialog(
+            useDialog = useDialog,
             showDialog = showDownloadDialog,
             onNavigateToCookieGeneratorPage = onNavigateToCookieGeneratorPage,
             onDownloadConfirm = { checkPermissionOrDownload() },
-            onDismissRequest = {
-                showDownloadDialog = false
-            }
+            onDismissRequest = { showDownloadDialog = false },
         )
     }
-
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class
-)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DownloadPageImpl(
     downloaderState: Downloader.State,
     taskState: Downloader.DownloadTaskItem,
-    viewState: DownloadViewModel.ViewState,
+    viewState: HomePageViewModel.ViewState,
     errorState: Downloader.ErrorState,
     showVideoCard: Boolean = false,
     showOutput: Boolean = false,
@@ -316,120 +356,131 @@ fun DownloadPageImpl(
     onVideoCardClicked: () -> Unit = {},
     onUrlChanged: (String) -> Unit = {},
     isPreview: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val view = LocalView.current
     val clipboardManager = LocalClipboardManager.current
 
     val showCancelButton =
-        downloaderState is Downloader.State.DownloadingPlaylist || downloaderState is Downloader.State.DownloadingVideo
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        TopAppBar(title = {}, modifier = Modifier.padding(horizontal = 8.dp), navigationIcon = {
-            TooltipBox(
-                state = rememberTooltipState(),
-                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                tooltip = {
-                    PlainTooltip {
-                        Text(text = stringResource(id = R.string.settings))
-                    }
-                }) {
-                IconButton(
-                    onClick = {
-                        view.slightHapticFeedback()
-                        navigateToSettings()
-                    },
-                    modifier = Modifier
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Settings,
-                        contentDescription = stringResource(id = R.string.settings)
-                    )
-                }
-            }
-
-        }, actions = {
-            BadgedBox(badge = {
-                if (processCount > 0)
-                    Badge(
-                        modifier = Modifier.offset(
-                            x = (-16).dp,
-                            y = (8).dp
-                        )
-                    ) { Text("$processCount") }
-            }) {
-                TooltipBox(state = rememberTooltipState(),
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    tooltip = {
-                        PlainTooltip {
-                            Text(text = stringResource(id = R.string.running_tasks))
-                        }
-                    }) {
-                    IconButton(
-                        onClick = {
-                            view.slightHapticFeedback()
-                            onNavigateToTaskList()
+        downloaderState is Downloader.State.DownloadingPlaylist ||
+            downloaderState is Downloader.State.DownloadingVideo
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            TopAppBar(
+                title = {},
+                modifier = Modifier.padding(horizontal = 8.dp),
+                navigationIcon = {
+                    TooltipBox(
+                        state = rememberTooltipState(),
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            PlainTooltip { Text(text = stringResource(id = R.string.settings)) }
                         },
-                        modifier = Modifier
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Terminal,
-                            contentDescription = stringResource(id = R.string.running_tasks)
-                        )
+                        IconButton(
+                            onClick = {
+                                view.slightHapticFeedback()
+                                navigateToSettings()
+                            },
+                            modifier = Modifier,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = stringResource(id = R.string.settings),
+                            )
+                        }
                     }
-                }
-            }
-            TooltipBox(state = rememberTooltipState(),
-                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                tooltip = {
-                    PlainTooltip {
-                        Text(text = stringResource(id = R.string.downloads_history))
+                },
+                actions = {
+                    BadgedBox(
+                        badge = {
+                            if (processCount > 0)
+                                Badge(modifier = Modifier.offset(x = (-16).dp, y = (8).dp)) {
+                                    Text("$processCount")
+                                }
+                        }
+                    ) {
+                        TooltipBox(
+                            state = rememberTooltipState(),
+                            positionProvider =
+                                TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                            tooltip = {
+                                PlainTooltip {
+                                    Text(text = stringResource(id = R.string.running_tasks))
+                                }
+                            },
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    view.slightHapticFeedback()
+                                    onNavigateToTaskList()
+                                },
+                                modifier = Modifier,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Terminal,
+                                    contentDescription = stringResource(id = R.string.running_tasks),
+                                )
+                            }
+                        }
                     }
-                }) {
-                IconButton(
-                    onClick = {
-                        view.slightHapticFeedback()
-                        navigateToDownloads()
+                    TooltipBox(
+                        state = rememberTooltipState(),
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            PlainTooltip {
+                                Text(text = stringResource(id = R.string.downloads_history))
+                            }
+                        },
+                    ) {
+                        IconButton(
+                            onClick = {
+                                view.slightHapticFeedback()
+                                navigateToDownloads()
+                            },
+                            modifier = Modifier,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Subscriptions,
+                                contentDescription = stringResource(id = R.string.downloads_history),
+                            )
+                        }
+                    }
+                },
+            )
+        },
+        floatingActionButton = {
+            FABs(
+                modifier =
+                    with(receiver = Modifier) {
+                        if (showDownloadProgress) this else this.imePadding()
                     },
-                    modifier = Modifier
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Subscriptions,
-                        contentDescription = stringResource(id = R.string.downloads_history)
-                    )
-                }
-            }
-        })
-    }, floatingActionButton = {
-        FABs(
-            modifier = with(receiver = Modifier) { if (showDownloadProgress) this else this.imePadding() },
-            downloadCallback = downloadCallback,
-            pasteCallback = pasteCallback
-        )
-    }) {
+                downloadCallback = downloadCallback,
+                pasteCallback = pasteCallback,
+            )
+        },
+    ) {
         Column(
-            modifier = Modifier
-                .padding(it)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier.padding(it).fillMaxSize().verticalScroll(rememberScrollState())
         ) {
             TitleWithProgressIndicator(
                 showProgressIndicator = downloaderState is Downloader.State.FetchingInfo,
                 isDownloadingPlaylist = downloaderState is Downloader.State.DownloadingPlaylist,
                 showDownloadText = showCancelButton,
-                currentIndex = downloaderState.run { if (this is Downloader.State.DownloadingPlaylist) currentItem else 0 },
-                downloadItemCount = downloaderState.run { if (this is Downloader.State.DownloadingPlaylist) itemCount else 0 },
+                currentIndex =
+                    downloaderState.run {
+                        if (this is Downloader.State.DownloadingPlaylist) currentItem else 0
+                    },
+                downloadItemCount =
+                    downloaderState.run {
+                        if (this is Downloader.State.DownloadingPlaylist) itemCount else 0
+                    },
             )
 
-
-            Column(
-                Modifier
-                    .padding(horizontal = 24.dp)
-                    .padding(top = 24.dp)
-            ) {
+            Column(Modifier.padding(horizontal = 24.dp).padding(top = 24.dp)) {
                 with(taskState) {
-                    AnimatedVisibility(
-                        visible = showDownloadProgress && showVideoCard
-                    ) {
+                    AnimatedVisibility(visible = showDownloadProgress && showVideoCard) {
                         Box() {
                             VideoCard(
                                 modifier = Modifier,
@@ -437,14 +488,15 @@ fun DownloadPageImpl(
                                 author = uploader,
                                 thumbnailUrl = thumbnailUrl,
                                 progress = progress,
-                                showCancelButton = downloaderState is Downloader.State.DownloadingPlaylist || downloaderState is Downloader.State.DownloadingVideo,
+                                showCancelButton =
+                                    downloaderState is Downloader.State.DownloadingPlaylist ||
+                                        downloaderState is Downloader.State.DownloadingVideo,
                                 onCancel = cancelCallback,
                                 fileSizeApprox = fileSizeApprox,
                                 duration = duration,
                                 onClick = onVideoCardClicked,
-                                isPreview = isPreview
+                                isPreview = isPreview,
                             )
-
                         }
                     }
                     InputUrl(
@@ -455,54 +507,43 @@ fun DownloadPageImpl(
                         showCancelButton = showCancelButton && !showVideoCard,
                         onCancel = cancelCallback,
                         onDone = downloadCallback,
-                    ) { url -> onUrlChanged(url) }
+                    ) { url ->
+                        onUrlChanged(url)
+                    }
                     AnimatedVisibility(
                         modifier = Modifier.fillMaxWidth(),
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut(),
-                        visible = progressText.isNotEmpty() && showOutput
+                        visible = progressText.isNotEmpty() && showOutput,
                     ) {
                         Text(
                             modifier = Modifier.padding(bottom = 12.dp),
                             text = progressText,
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 }
                 AnimatedVisibility(visible = errorState != Downloader.ErrorState.None) {
-                    ErrorMessage(
-                        title = errorState.title,
-                        errorReport = errorState.report
-                    ) {
+                    ErrorMessage(title = errorState.title, errorReport = errorState.report) {
                         view.longPressHapticFeedback()
-                        clipboardManager.setText(AnnotatedString(App.getVersionReport() + "\nURL: ${errorState.url}\n${errorState.report}"))
+                        clipboardManager.setText(
+                            AnnotatedString(
+                                App.getVersionReport() +
+                                    "\nURL: ${errorState.url}\n${errorState.report}"
+                            )
+                        )
                         ToastUtil.makeToast(R.string.error_copied)
                     }
                 }
                 content()
-//                val output = Downloader.mutableProcessOutput
-//                LazyRow() {
-//                    items(output.toList()) { entry ->
-//                        TextField(
-//                            value = entry.second,
-//                            label = { Text(entry.first) },
-//                            onValueChange = {},
-//                            readOnly = true,
-//                            minLines = 10,
-//                            maxLines = 10,
-//                        )
-//                    }
-//                }
-//                    PreviewFormat()
                 NavigationBarSpacer()
                 Spacer(modifier = Modifier.height(160.dp))
             }
         }
     }
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -514,7 +555,7 @@ fun InputUrl(
     onDone: () -> Unit,
     showCancelButton: Boolean,
     onCancel: () -> Unit,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
 ) {
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
     OutlinedTextField(
@@ -522,41 +563,36 @@ fun InputUrl(
         isError = error,
         onValueChange = onValueChange,
         label = { Text(stringResource(R.string.video_url)) },
-        modifier = Modifier
-            .padding(0f.dp, 16f.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.padding(0f.dp, 16f.dp).fillMaxWidth(),
         textStyle = MaterialTheme.typography.bodyLarge,
         maxLines = 3,
         trailingIcon = {
             if (url.isNotEmpty()) ClearButton { onValueChange("") }
-//            else PasteUrlButton { onPaste() }
-        }, keyboardActions = KeyboardActions(onDone = { onDone() }),
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+            //            else PasteUrlButton { onPaste() }
+        },
+        keyboardActions = KeyboardActions(onDone = { onDone() }),
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
     )
     AnimatedVisibility(visible = showDownloadProgress) {
-        Row(
-            Modifier.padding(0.dp, 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val progressAnimationValue by animateFloatAsState(
-                targetValue = progress / 100f,
-                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-            )
-            if (progressAnimationValue < 0) LinearProgressIndicator(
-                modifier = Modifier
-                    .weight(0.75f)
-                    .clip(MaterialTheme.shapes.large),
-            )
-            else LinearProgressIndicator(
-                progress = { progressAnimationValue },
-                modifier = Modifier
-                    .weight(0.75f)
-                    .clip(MaterialTheme.shapes.large),
-            )
+        Row(Modifier.padding(0.dp, 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            val progressAnimationValue by
+                animateFloatAsState(
+                    targetValue = progress / 100f,
+                    animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                )
+            if (progressAnimationValue < 0)
+                LinearProgressIndicator(
+                    modifier = Modifier.weight(0.75f).clip(MaterialTheme.shapes.large)
+                )
+            else
+                LinearProgressIndicator(
+                    progress = { progressAnimationValue },
+                    modifier = Modifier.weight(0.75f).clip(MaterialTheme.shapes.large),
+                )
             Text(
                 text = if (progress < 0) "0%" else "$progress%",
                 textAlign = TextAlign.Center,
-                modifier = Modifier.weight(0.25f)
+                modifier = Modifier.weight(0.25f),
             )
         }
     }
@@ -566,11 +602,10 @@ fun InputUrl(
                 onClick = onCancel,
                 icon = Icons.Outlined.Cancel,
                 text = stringResource(id = R.string.cancel),
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
-
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -584,36 +619,31 @@ fun TitleWithProgressIndicator(
 ) {
     Column(modifier = Modifier.padding(start = 12.dp, top = 24.dp)) {
         Row(
-            modifier = Modifier
-                .clip(MaterialTheme.shapes.extraLarge)
-                .padding(horizontal = 12.dp)
-                .padding(top = 12.dp, bottom = 3.dp)
+            modifier =
+                Modifier.clip(MaterialTheme.shapes.extraLarge)
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 12.dp, bottom = 3.dp)
         ) {
             Text(
                 modifier = Modifier,
                 text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.displaySmall
+                style = MaterialTheme.typography.displaySmall,
             )
             AnimatedVisibility(visible = showProgressIndicator) {
-                Column(
-                    modifier = Modifier.padding(start = 12.dp)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp), strokeWidth = 3.dp
-                    )
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 3.dp)
                 }
             }
         }
         AnimatedVisibility(visible = showDownloadText) {
             Text(
-                if (isDownloadingPlaylist) stringResource(R.string.playlist_indicator_text).format(
-                    currentIndex,
-                    downloadItemCount
-                )
+                if (isDownloadingPlaylist)
+                    stringResource(R.string.playlist_indicator_text)
+                        .format(currentIndex, downloadItemCount)
                 else stringResource(R.string.downloading_indicator_text),
                 modifier = Modifier.padding(start = 12.dp, top = 3.dp),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -624,30 +654,25 @@ fun ErrorMessage(
     modifier: Modifier = Modifier,
     title: String,
     errorReport: String,
-    onButtonClicked: () -> Unit = {}
+    onButtonClicked: () -> Unit = {},
 ) {
     val view = LocalView.current
     Surface(
         color = MaterialTheme.colorScheme.errorContainer,
         shape = MaterialTheme.shapes.large,
-        modifier = Modifier
-            .padding(vertical = 16.dp)
+        modifier = Modifier.padding(vertical = 16.dp),
     ) {
         Column(
-            modifier = Modifier
-                .animateContentSize()
-                .padding(horizontal = 12.dp, vertical = 16.dp)
+            modifier = Modifier.animateContentSize().padding(horizontal = 12.dp, vertical = 16.dp)
         ) {
             Row(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     Icons.Outlined.Error,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
@@ -657,7 +682,7 @@ fun ErrorMessage(
                         modifier = Modifier,
                         text = title,
                         color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
             }
@@ -671,36 +696,34 @@ fun ErrorMessage(
                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                 overflow = TextOverflow.Ellipsis,
                 maxLines = if (isExpanded) Int.MAX_VALUE else 8,
-                modifier = Modifier
-                    .clip(MaterialTheme.shapes.small)
-                    .clickable(
-                        enabled = !isExpanded, onClickLabel = stringResource(
-                            id = R.string.expand
-                        ), onClick = {
-                            view.slightHapticFeedback()
-                            isExpanded = true
-                        }
-                    )
-                    .padding(4.dp),
-                onTextLayout = {
-                    isExpanded = !it.hasVisualOverflow
-                }
+                modifier =
+                    Modifier.clip(MaterialTheme.shapes.small)
+                        .clickable(
+                            enabled = !isExpanded,
+                            onClickLabel = stringResource(id = R.string.expand),
+                            onClick = {
+                                view.slightHapticFeedback()
+                                isExpanded = true
+                            },
+                        )
+                        .padding(4.dp),
+                onTextLayout = { isExpanded = !it.hasVisualOverflow },
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-
             Row(modifier = Modifier.align(Alignment.End)) {
                 TextButton(
                     onClick = onButtonClicked,
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors =
+                        ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        ),
                 ) {
                     Text(text = stringResource(id = R.string.copy_error_report))
                 }
             }
-
         }
-
     }
 }
 
@@ -717,11 +740,9 @@ private fun ErrorPreview() {
                     ) {}
                 }
             }
-
         }
     }
 }
-
 
 @Composable
 fun FABs(
@@ -729,14 +750,13 @@ fun FABs(
     downloadCallback: () -> Unit = {},
     pasteCallback: () -> Unit = {},
 ) {
-    Column(
-        modifier = modifier.padding(6.dp), horizontalAlignment = Alignment.End
-    ) {
+    Column(modifier = modifier.padding(6.dp), horizontalAlignment = Alignment.End) {
         FloatingActionButton(
             onClick = pasteCallback,
             content = {
                 Icon(
-                    Icons.Outlined.ContentPaste, contentDescription = stringResource(R.string.paste)
+                    Icons.Outlined.ContentPaste,
+                    contentDescription = stringResource(R.string.paste),
                 )
             },
             modifier = Modifier.padding(vertical = 12.dp),
@@ -746,13 +766,12 @@ fun FABs(
             content = {
                 Icon(
                     Icons.Outlined.FileDownload,
-                    contentDescription = stringResource(R.string.download)
+                    contentDescription = stringResource(R.string.download),
                 )
             },
             modifier = Modifier.padding(vertical = 12.dp),
         )
     }
-
 }
 
 @Composable
@@ -763,15 +782,13 @@ fun DownloadPagePreview() {
             DownloadPageImpl(
                 downloaderState = Downloader.State.DownloadingVideo,
                 taskState = Downloader.DownloadTaskItem(),
-                viewState = DownloadViewModel.ViewState(),
-                errorState = Downloader.ErrorState.DownloadError(
-                    url = "",
-                    report = ERROR_REPORT_SAMPLE
-                ),
+                viewState = HomePageViewModel.ViewState(),
+                errorState =
+                    Downloader.ErrorState.DownloadError(url = "", report = ERROR_REPORT_SAMPLE),
                 processCount = 99,
                 isPreview = true,
                 showDownloadProgress = true,
-                showVideoCard = false
+                showVideoCard = false,
             ) {}
         }
     }
