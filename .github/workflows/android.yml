@@ -26,11 +26,17 @@ jobs:
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
       with:
-        gradle-version: '8.0'  # You can specify the Gradle version you need
+        gradle-version: '8.0'  # Specify your Gradle version
         cache-enabled: true
 
     - name: Build APK
-      run: ./gradlew assembleRelease  # Use `./gradlew` instead of `gradle` to ensure the local wrapper is used
+      run: ./gradlew assembleRelease  # Use `./gradlew` to ensure the local wrapper is used
+
+    - name: Create release directory
+      run: mkdir -p app/build/outputs/apk/release
+
+    - name: Decode and Save Signing Key
+      run: echo "${{ secrets.SIGNING_KEY }}" | base64 -d > app/build/outputs/apk/release/key.jks
 
     - name: Sign app APK
       id: sign_app
